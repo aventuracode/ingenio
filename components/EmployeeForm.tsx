@@ -1,26 +1,39 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { EmployeeFormData } from '@/types/employee'
 
-export default function EmployeeForm() {
+interface EmployeeFormProps {
+  employeeId?: string
+  initialData?: EmployeeFormData
+}
+
+export default function EmployeeForm({ employeeId, initialData }: EmployeeFormProps) {
   const router = useRouter()
   const supabase = createClient()
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  const [formData, setFormData] = useState<EmployeeFormData>({
-    nombre: '',
-    apellido: '',
-    dni: '',
-    email: '',
-    puesto: '',
-    fecha_ingreso: new Date().toISOString().split('T')[0],
-    activo: true,
-  })
+  const [formData, setFormData] = useState<EmployeeFormData>(
+    initialData || {
+      nombre: '',
+      apellido: '',
+      dni: '',
+      email: '',
+      puesto: '',
+      fecha_ingreso: new Date().toISOString().split('T')[0],
+      activo: true,
+    }
+  )
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData)
+    }
+  }, [initialData])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -36,19 +49,43 @@ export default function EmployeeForm() {
     setError(null)
 
     try {
-      const { error: insertError } = await supabase
-        .from('employees')
-        .insert([formData])
+      const { data: { user } } = await supabase.auth.getUser()
 
-      if (insertError) {
-        throw insertError
+      if (employeeId) {
+        const updateData = {
+          ...formData,
+          updated_by: user?.id || null,
+        }
+
+        const { error: updateError } = await supabase
+          .from('employees')
+          .update(updateData)
+          .eq('id', employeeId)
+
+        if (updateError) {
+          throw updateError
+        }
+      } else {
+        const insertData = {
+          ...formData,
+          created_by: user?.id || null,
+          updated_by: user?.id || null,
+        }
+
+        const { error: insertError } = await supabase
+          .from('employees')
+          .insert([insertData])
+
+        if (insertError) {
+          throw insertError
+        }
       }
 
       router.push('/dashboard/empleados')
       router.refresh()
     } catch (err) {
-      console.error('Error creating employee:', err)
-      setError(err instanceof Error ? err.message : 'Error al crear el empleado')
+      console.error(`Error ${employeeId ? 'updating' : 'creating'} employee:`, err)
+      setError(err instanceof Error ? err.message : `Error al ${employeeId ? 'actualizar' : 'crear'} el empleado`)
       setLoading(false)
     }
   }
@@ -196,7 +233,7 @@ export default function EmployeeForm() {
             disabled={loading}
             className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? 'Guardando...' : 'Guardar Empleado'}
+            {loading ? 'Guardando...' : employeeId ? 'Actualizar Empleado' : 'Guardar Empleado'}
           </button>
         </div>
       </form>

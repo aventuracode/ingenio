@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS employees (
   fecha_ingreso DATE NOT NULL,
   activo BOOLEAN DEFAULT true,
   avatar_url TEXT,
+  created_by UUID REFERENCES auth.users(id),
+  updated_by UUID REFERENCES auth.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );

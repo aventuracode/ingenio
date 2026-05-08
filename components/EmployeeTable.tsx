@@ -1,8 +1,9 @@
 'use client'
 
 import { Employee } from '@/types/employee'
-import { Users } from 'lucide-react'
+import { Users, Edit } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 interface EmployeeTableProps {
   employees: Employee[]
@@ -58,6 +59,12 @@ export default function EmployeeTable({ employees }: EmployeeTableProps) {
               >
                 Estado
               </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
+              >
+                Acciones
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">
@@ -110,6 +117,15 @@ export default function EmployeeTable({ employees }: EmployeeTableProps) {
                   >
                     {employee.activo ? 'Activo' : 'Inactivo'}
                   </span>
+                </td>
+                <td className="whitespace-nowrap px-6 py-4 text-right">
+                  <Link
+                    href={`/dashboard/empleados/${employee.id}/edit`}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Editar
+                  </Link>
                 </td>
               </tr>
             ))}
