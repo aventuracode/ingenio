@@ -194,6 +194,29 @@ export function calculateProgress(completed: number, total: number): number {
   return Math.round((completed / total) * 100)
 }
 
+/**
+ * Deriva el estado de una evaluación basado en el progreso real
+ * NO confía en evaluations.status, calcula dinámicamente
+ */
+export function deriveEvaluationStatus(
+  completedReviewers: number,
+  totalReviewers: number
+): EvaluationStatus {
+  if (totalReviewers === 0) {
+    return 'pending'
+  }
+
+  const percentage = (completedReviewers / totalReviewers) * 100
+
+  if (percentage === 0) {
+    return 'pending'
+  } else if (percentage === 100) {
+    return 'completed'
+  } else {
+    return 'in_progress'
+  }
+}
+
 export function transformEvaluationForUI(
   evaluation: EvaluationWithRelations
 ): EvaluationListItem {
@@ -201,6 +224,9 @@ export function transformEvaluationForUI(
     (r) => r.completed === true
   ).length
   const totalReviewers = evaluation.reviewers.length
+
+  // CALCULAR ESTADO DERIVADO (NO usar evaluation.status directamente)
+  const derivedStatus = deriveEvaluationStatus(completedReviewers, totalReviewers)
 
   // Calcular puntaje promedio de reviewers completados
   const reviewersWithScores = evaluation.reviewers.filter(r => r.completed)
@@ -226,8 +252,8 @@ export function transformEvaluationForUI(
       id: evaluation.cycle?.id || '',
       nombre: evaluation.cycle?.title || 'Sin ciclo',
     },
-    estado: getEvaluationStatusLabel(evaluation.status || 'pending'),
-    estadoRaw: evaluation.status || 'pending',
+    estado: getEvaluationStatusLabel(derivedStatus),
+    estadoRaw: derivedStatus, // Usar estado derivado, NO evaluation.status
     progreso: {
       completados: completedReviewers,
       total: totalReviewers,

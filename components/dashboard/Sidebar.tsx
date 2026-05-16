@@ -27,7 +27,7 @@ export default function Sidebar() {
 
           <div>
             <h1 className="text-lg font-semibold text-white">
-              Ingenio ERP
+              Ingenio la Trinidad
             </h1>
 
             <p className="text-xs text-gray-400">

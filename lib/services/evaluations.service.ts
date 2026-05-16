@@ -78,14 +78,20 @@ export class EvaluationsService {
 
   /**
    * Calcula las estadísticas generales de evaluaciones
+   * Usa estado derivado basado en progreso real de reviewers
    */
   static async getEvaluationStats(): Promise<EvaluationStats> {
     const supabase = await createClient()
 
-    // Obtener todas las evaluaciones (sin average_score ya que no existe en la tabla)
+    // Obtener todas las evaluaciones con sus reviewers
     const { data: evaluations, error } = await supabase
       .from('evaluations')
-      .select('status')
+      .select(`
+        id,
+        reviewers:evaluation_reviewers (
+          completed
+        )
+      `)
 
     if (error) {
       console.error('Error fetching evaluation stats:', error)
@@ -106,10 +112,27 @@ export class EvaluationsService {
       }
     }
 
-    // Calcular estadísticas
-    const activas = evaluations.filter((e) => e.status === 'in_progress').length
-    const pendientes = evaluations.filter((e) => e.status === 'pending').length
-    const finalizadas = evaluations.filter((e) => e.status === 'completed').length
+    // Calcular estadísticas usando estado derivado
+    let activas = 0
+    let pendientes = 0
+    let finalizadas = 0
+
+    evaluations.forEach((evaluation) => {
+      const reviewers = evaluation.reviewers || []
+      const completedCount = reviewers.filter((r: any) => r.completed === true).length
+      const totalCount = reviewers.length
+
+      // Derivar estado basado en progreso
+      const percentage = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
+
+      if (percentage === 0) {
+        pendientes++
+      } else if (percentage === 100) {
+        finalizadas++
+      } else {
+        activas++
+      }
+    })
 
     // TODO: Calcular promedio desde evaluation_answers cuando se implemente
     const promedioGeneral = 0
@@ -118,7 +141,7 @@ export class EvaluationsService {
       activas,
       pendientes,
       finalizadas,
-      promedioGeneral: Math.round(promedioGeneral * 10) / 10, // Redondear a 1 decimal
+      promedioGeneral: Math.round(promedioGeneral * 10) / 10,
     }
   }
 
