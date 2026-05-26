@@ -1,18 +1,15 @@
-# Ingenio - Plataforma HR + Evaluaciones 360°
+# Ingenio - HR Platform
 
-> Sistema SaaS enterprise de Recursos Humanos con evaluaciones 360° completas.
+Sistema de Recursos Humanos con Evaluaciones 360°, gestión de roles y permisos basado en Next.js 14, Supabase y TypeScript.
 
-**Stack:** Next.js 15 + TypeScript + Supabase + TailwindCSS
+**Stack:** Next.js 14 + TypeScript + Supabase + TailwindCSS
 
 ---
 
-## � Documentación
+## 📚 Documentación
 
-- 📊 **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - Resumen ejecutivo completo
-- 🏗️ **[EVALUACIONES_360_ARCHITECTURE.md](./EVALUACIONES_360_ARCHITECTURE.md)** - Arquitectura de evaluaciones
-- 🔐 **[ROLES_PERMISSIONS_ARCHITECTURE_GUIDE.md](./ROLES_PERMISSIONS_ARCHITECTURE_GUIDE.md)** - Roles y permisos
-- 📚 **[DOCS_INDEX.md](./DOCS_INDEX.md)** - Índice de toda la documentación
-- 🐛 **[TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)** - Solución de problemas
+- 📖 **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Arquitectura completa del sistema
+- 🔧 **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Solución de problemas
 
 ---
 
@@ -34,12 +31,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 
 ### 3. Aplicar RLS Policies
 
-Ejecutar scripts SQL en Supabase Dashboard:
+```bash
+# En Supabase SQL Editor
+\i supabase/policy/apply_all_policies.sql
 ```
-supabase/policy/*.sql
-```
-
-Ver: [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
 
 ### 4. Iniciar desarrollo
 
@@ -51,7 +46,7 @@ Abrir [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## �️ Scripts Disponibles
+## 🛠️ Scripts Disponibles
 
 ```bash
 npm run dev          # Servidor desarrollo
@@ -62,11 +57,11 @@ npm run lint         # Linter
 
 ---
 
-## � Estructura Principal
+## 📁 Estructura Principal
 
 ```
 app/
-├── dashboard/              # Dashboards por role
+├── dashboard/              # Dashboards por rol
 │   ├── empleados/          # Gestión empleados
 │   ├── evaluaciones/       # Evaluaciones 360°
 │   ├── mi-feedback/        # Feedback anónimo
@@ -90,18 +85,19 @@ supabase/policy/            # RLS Policies SQL
 - ✅ **Evaluaciones 360°** con feedback anónimo
 - ✅ **4 Roles** (admin, rrhh, manager, employee)
 - ✅ **RLS Policies** en Supabase
-- ✅ **DTOs seguros** por role
-- ✅ **Dashboards dinámicos** por role
+- ✅ **DTOs seguros** por rol
+- ✅ **Dashboards dinámicos** por rol
+- ✅ **Modal moderno** para confirmaciones
+- ✅ **Navegación adaptada** por rol
 
-Ver detalles completos en [PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)
+Ver detalles completos en [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ---
 
 ## 🆘 Ayuda
 
-- 🐛 **Problemas?** → [TROUBLESHOOTING_GUIDE.md](./TROUBLESHOOTING_GUIDE.md)
-- 📚 **Documentación completa** → [DOCS_INDEX.md](./DOCS_INDEX.md)
-- 🏗️ **Arquitectura** → [EVALUACIONES_360_ARCHITECTURE.md](./EVALUACIONES_360_ARCHITECTURE.md)
+- 🐛 **Problemas?** → [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+- 📖 **Arquitectura completa** → [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ---
 
