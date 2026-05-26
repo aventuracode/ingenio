@@ -18,6 +18,18 @@ export class FeedbackService {
   ): Promise<EmployeeFeedbackDTO[]> {
     const supabase = await createClient()
 
+    // Primero obtener IDs de evaluaciones del employee
+    const { data: evaluations } = await supabase
+      .from('evaluations')
+      .select('id')
+      .eq('employee_id', employeeId)
+
+    if (!evaluations || evaluations.length === 0) {
+      return []
+    }
+
+    const evaluationIds = evaluations.map((e) => e.id)
+
     const { data, error } = await supabase
       .from('evaluation_answers')
       .select(
@@ -25,11 +37,11 @@ export class FeedbackService {
         id,
         score,
         comment,
-        category,
-        created_at
+        created_at,
+        question:evaluation_questions(category)
       `
       )
-      .eq('evaluation_id', employeeId)
+      .in('evaluation_id', evaluationIds)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -40,11 +52,11 @@ export class FeedbackService {
     if (!data) return []
 
     // Mapear a DTO anónimo
-    return data.map((answer) => ({
+    return data.map((answer: any) => ({
       id: answer.id,
       score: answer.score,
       comment: answer.comment,
-      category: answer.category,
+      category: answer.question?.category || 'General',
       createdAt: answer.created_at,
     }))
   }
@@ -77,7 +89,7 @@ export class FeedbackService {
 
     const evaluationIds = evaluations.map((e) => e.id)
 
-    // Obtener todas las respuestas del employee
+    // Obtener todas las respuestas del employee con categoría de la pregunta
     const { data: answers, error } = await supabase
       .from('evaluation_answers')
       .select(
@@ -85,8 +97,8 @@ export class FeedbackService {
         id,
         score,
         comment,
-        category,
-        created_at
+        created_at,
+        question:evaluation_questions(category)
       `
       )
       .in('evaluation_id', evaluationIds)
@@ -118,14 +130,15 @@ export class FeedbackService {
       { scores: number[]; count: number }
     >()
 
-    answers.forEach((answer) => {
-      const existing = categoryMap.get(answer.category) || {
+    answers.forEach((answer: any) => {
+      const category = answer.question?.category || 'General'
+      const existing = categoryMap.get(category) || {
         scores: [],
         count: 0,
       }
       existing.scores.push(answer.score)
       existing.count++
-      categoryMap.set(answer.category, existing)
+      categoryMap.set(category, existing)
     })
 
     const scoresByCategory = Array.from(categoryMap.entries()).map(
@@ -140,11 +153,11 @@ export class FeedbackService {
     // Feedback reciente (últimos 5)
     const recentFeedback: EmployeeFeedbackDTO[] = answers
       .slice(0, 5)
-      .map((answer) => ({
+      .map((answer: any) => ({
         id: answer.id,
         score: answer.score,
         comment: answer.comment,
-        category: answer.category,
+        category: answer.question?.category || 'General',
         createdAt: answer.created_at,
       }))
 

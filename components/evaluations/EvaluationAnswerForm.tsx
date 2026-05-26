@@ -13,6 +13,7 @@ import {
 import type { EvaluationDetailForReviewer } from '@/types/reviewer-evaluation'
 import QuestionCard from './QuestionCard'
 import { createClient } from '@/lib/supabase/client'
+import ConfirmModal from '@/components/ui/ConfirmModal'
 
 // ============================================
 // COMPONENT: EVALUATION ANSWER FORM
@@ -43,6 +44,7 @@ export default function EvaluationAnswerForm({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [saveType, setSaveType] = useState<'draft' | 'submit'>('draft')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
 
   // ============================================
   // HANDLERS
@@ -88,14 +90,12 @@ export default function EvaluationAnswerForm({
       return
     }
 
-    if (
-      !confirm(
-        '¿Estás seguro de enviar esta evaluación? No podrás modificarla después.'
-      )
-    ) {
-      return
-    }
+    // Mostrar modal de confirmación
+    setShowConfirmModal(true)
+  }
 
+  const handleConfirmSubmit = async () => {
+    setShowConfirmModal(false)
     await saveAnswers(true)
   }
 
@@ -193,7 +193,21 @@ export default function EvaluationAnswerForm({
   // ============================================
 
   return (
-    <form className="space-y-6">
+    <>
+      {/* MODAL DE CONFIRMACIÓN */}
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmSubmit}
+        title="¿Enviar evaluación?"
+        message="Una vez enviada, no podrás modificar tus respuestas. Asegúrate de haber revisado todas las calificaciones y comentarios."
+        confirmText="Sí, enviar"
+        cancelText="Revisar de nuevo"
+        variant="info"
+        loading={loading}
+      />
+
+      <form className="space-y-6">
       {/* MENSAJES DE ERROR/SUCCESS */}
       {error && (
         <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -342,5 +356,6 @@ export default function EvaluationAnswerForm({
         </div>
       )}
     </form>
+    </>
   )
 }

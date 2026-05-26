@@ -114,14 +114,19 @@ export const navigationByRole: NavigationConfig = {
       icon: LayoutDashboard,
     },
     {
-      name: 'Evaluaciones',
-      href: '/dashboard/evaluaciones',
-      icon: ClipboardCheck,
-    },
-    {
       name: 'Mis Evaluaciones',
       href: '/dashboard/mis-evaluaciones',
       icon: FileCheck,
+    },
+    {
+      name: 'Mi Feedback',
+      href: '/dashboard/mi-feedback',
+      icon: BarChart3,
+    },
+    {
+      name: 'Mi Perfil',
+      href: '/dashboard/perfil',
+      icon: User,
     },
   ],
 
