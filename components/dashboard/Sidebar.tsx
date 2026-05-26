@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogOut, ChevronRight, Building2 } from 'lucide-react'
+import { LogOut, ChevronRight, Building2, Loader2 } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
 import { useCurrentRole } from '@/hooks/useCurrentRole'
-import { getNavigationForRole } from '@/lib/config/navigation'
+import { getNavigationForRole, getActiveNavigationItem } from '@/lib/config/navigation'
+import { getRoleLabel } from '@/lib/auth/roles'
 
 export default function Sidebar() {
   const pathname = usePathname()

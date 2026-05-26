@@ -5,16 +5,36 @@ import {
   ClipboardCheck,
   Calendar,
   FileCheck,
+  BarChart3,
+  Settings,
+  Shield,
+  FileText,
+  User,
 } from 'lucide-react'
-import type { NavigationConfig, UserRole, NavigationItem } from '@/types/navigation'
+import { ROLES, type Role } from '@/lib/auth/roles'
+import type { LucideIcon } from 'lucide-react'
+
+// ============================================
+// NAVIGATION TYPES
+// ============================================
+
+export interface NavigationItem {
+  name: string
+  href: string
+  icon: LucideIcon
+  badge?: string
+  description?: string
+}
+
+export type NavigationConfig = Record<Role, NavigationItem[]>
 
 // ============================================
 // NAVIGATION CONFIG BY ROLE
 // ============================================
 
 export const navigationByRole: NavigationConfig = {
-  // ADMIN: Acceso completo
-  admin: [
+  // ADMIN: Acceso completo al sistema
+  [ROLES.ADMIN]: [
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -39,6 +59,11 @@ export const navigationByRole: NavigationConfig = {
       name: 'Ciclos',
       href: '/dashboard/evaluaciones/ciclos',
       icon: Calendar,
+    },
+    {
+      name: 'Analytics',
+      href: '/dashboard/analytics',
+      icon: BarChart3,
     },
     {
       name: 'Usuarios',
@@ -47,8 +72,8 @@ export const navigationByRole: NavigationConfig = {
     },
   ],
 
-  // RRHH: Sin usuarios
-  rrhh: [
+  // RRHH: Gestión completa de HR sin usuarios del sistema
+  [ROLES.RRHH]: [
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -74,10 +99,15 @@ export const navigationByRole: NavigationConfig = {
       href: '/dashboard/evaluaciones/ciclos',
       icon: Calendar,
     },
+    {
+      name: 'Analytics',
+      href: '/dashboard/analytics',
+      icon: BarChart3,
+    },
   ],
 
-  // MANAGER: Dashboard + Evaluaciones
-  manager: [
+  // MANAGER: Gestión de equipo y evaluaciones
+  [ROLES.MANAGER]: [
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -95,8 +125,8 @@ export const navigationByRole: NavigationConfig = {
     },
   ],
 
-  // EMPLOYEE: Dashboard + Mis Evaluaciones
-  employee: [
+  // EMPLOYEE: Acceso personal
+  [ROLES.EMPLOYEE]: [
     {
       name: 'Dashboard',
       href: '/dashboard',
@@ -107,14 +137,28 @@ export const navigationByRole: NavigationConfig = {
       href: '/dashboard/mis-evaluaciones',
       icon: FileCheck,
     },
+    {
+      name: 'Mi Feedback',
+      href: '/dashboard/mi-feedback',
+      icon: BarChart3,
+    },
+    {
+      name: 'Mi Perfil',
+      href: '/dashboard/perfil',
+      icon: User,
+    },
   ],
 }
+
+// ============================================
+// NAVIGATION HELPERS
+// ============================================
 
 /**
  * Obtiene la navegación para un role específico
  * Retorna navegación mínima si el role no existe
  */
-export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
+export function getNavigationForRole(role: Role | null): NavigationItem[] {
   if (!role || !(role in navigationByRole)) {
     // Fallback seguro: solo Dashboard
     return [
@@ -127,4 +171,34 @@ export function getNavigationForRole(role: UserRole | null): NavigationItem[] {
   }
 
   return navigationByRole[role]
+}
+
+/**
+ * Verifica si una ruta está en la navegación del role
+ */
+export function isRouteAllowedForRole(role: Role | null, path: string): boolean {
+  if (!role) return false
+  
+  const navigation = getNavigationForRole(role)
+  return navigation.some((item) => path.startsWith(item.href))
+}
+
+/**
+ * Obtiene el item de navegación activo basado en el pathname
+ */
+export function getActiveNavigationItem(
+  role: Role | null,
+  pathname: string
+): NavigationItem | null {
+  if (!role) return null
+  
+  const navigation = getNavigationForRole(role)
+  
+  // Buscar coincidencia exacta primero
+  const exactMatch = navigation.find((item) => item.href === pathname)
+  if (exactMatch) return exactMatch
+  
+  // Buscar coincidencia por prefijo (más específico primero)
+  const sortedNav = [...navigation].sort((a, b) => b.href.length - a.href.length)
+  return sortedNav.find((item) => pathname.startsWith(item.href)) || null
 }

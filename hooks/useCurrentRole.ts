@@ -2,21 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { UserRole } from '@/types/navigation'
+import { isValidRole, type Role } from '@/lib/auth/roles'
 
 // ============================================
 // HOOK: USE CURRENT ROLE
 // ============================================
 
 export function useCurrentRole() {
-  const [role, setRole] = useState<UserRole | null>(null)
+  const [role, setRole] = useState<Role | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const supabase = createClient()
+
     async function fetchUserRole() {
       try {
-        const supabase = createClient()
-
         // Obtener usuario autenticado
         const {
           data: { user },
@@ -52,11 +52,8 @@ export function useCurrentRole() {
         // Extraer role name
         const roleName = (profile?.role as any)?.name as string | undefined
 
-        // Validar que sea un role válido
-        const validRoles: UserRole[] = ['admin', 'rrhh', 'manager', 'employee']
-        const userRole = validRoles.includes(roleName as UserRole)
-          ? (roleName as UserRole)
-          : null
+        // Validar que sea un role válido usando la función centralizada
+        const userRole = roleName && isValidRole(roleName) ? roleName : null
 
         setRole(userRole)
         setLoading(false)
@@ -67,7 +64,30 @@ export function useCurrentRole() {
       }
     }
 
+    // Fetch inicial
     fetchUserRole()
+
+    // Escuchar cambios en la sesión de autenticación
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event)
+      
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // Usuario se loguea o token se refresca
+        setLoading(true)
+        await fetchUserRole()
+      } else if (event === 'SIGNED_OUT') {
+        // Usuario se desloguea
+        setRole(null)
+        setLoading(false)
+      }
+    })
+
+    // Cleanup: desuscribirse al desmontar
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [])
 
   return { role, loading }
