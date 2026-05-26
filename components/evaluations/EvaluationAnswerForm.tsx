@@ -124,20 +124,17 @@ export default function EvaluationAnswerForm({
         return
       }
 
-      // Eliminar respuestas existentes
-      await supabase
+      // Usar UPSERT para insertar o actualizar respuestas
+      // onConflict especifica las columnas del constraint unique
+      const { error: upsertError } = await supabase
         .from('evaluation_answers')
-        .delete()
-        .eq('evaluation_id', evaluation.evaluationId)
-        .eq('reviewer_employee_id', reviewerEmployeeId)
+        .upsert(answersToSave, {
+          onConflict: 'evaluation_id,reviewer_employee_id,question_id',
+          ignoreDuplicates: false, // Actualizar si ya existe
+        })
 
-      // Insertar nuevas respuestas
-      const { error: insertError } = await supabase
-        .from('evaluation_answers')
-        .insert(answersToSave)
-
-      if (insertError) {
-        throw new Error(insertError.message)
+      if (upsertError) {
+        throw new Error(upsertError.message)
       }
 
       // Si se completa, marcar reviewer como completado
