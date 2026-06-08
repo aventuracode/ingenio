@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Loader2,
@@ -39,12 +39,38 @@ export default function EvaluationAnswerForm({
     }))
   )
 
+  // Estado de observaciones generales
+  const [generalComment, setGeneralComment] = useState('')
+
   // Estado de UI
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [saveType, setSaveType] = useState<'draft' | 'submit'>('draft')
   const [showConfirmModal, setShowConfirmModal] = useState(false)
+
+  // ============================================
+  // EFFECTS
+  // ============================================
+
+  // Cargar comentario general existente
+  useEffect(() => {
+    const loadGeneralComment = async () => {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('evaluation_general_comments')
+        .select('comment')
+        .eq('evaluation_id', evaluation.evaluationId)
+        .eq('reviewer_employee_id', reviewerEmployeeId)
+        .single()
+
+      if (data?.comment) {
+        setGeneralComment(data.comment)
+      }
+    }
+
+    loadGeneralComment()
+  }, [evaluation.evaluationId, reviewerEmployeeId])
 
   // ============================================
   // HANDLERS
@@ -69,6 +95,14 @@ export default function EvaluationAnswerForm({
     if (unanswered.length > 0) {
       setError(
         `Debes calificar todas las preguntas antes de enviar (${unanswered.length} pendientes)`
+      )
+      return false
+    }
+
+    // Validar longitud del comentario general
+    if (generalComment.length > 2000) {
+      setError(
+        `El comentario general no puede exceder los 2000 caracteres (actualmente: ${generalComment.length})`
       )
       return false
     }
@@ -124,6 +158,20 @@ export default function EvaluationAnswerForm({
         return
       }
 
+      // Preparar payload completo para verificación
+      const fullPayload = {
+        evaluation_id: evaluation.evaluationId,
+        reviewer_employee_id: reviewerEmployeeId,
+        answers: answersToSave,
+        general_comment: generalComment || null,
+        complete,
+      }
+
+      // Mostrar payload en consola para verificación
+      console.log('=== PAYLOAD COMPLETO DE EVALUACIÓN ===')
+      console.log(JSON.stringify(fullPayload, null, 2))
+      console.log('======================================')
+
       // Usar UPSERT para insertar o actualizar respuestas
       // onConflict especifica las columnas del constraint unique
       const { error: upsertError } = await supabase
@@ -135,6 +183,47 @@ export default function EvaluationAnswerForm({
 
       if (upsertError) {
         throw new Error(upsertError.message)
+      }
+
+      // Guardar comentario general si existe
+      if (generalComment.trim()) {
+        // Validar longitud del comentario
+        if (generalComment.length > 2000) {
+          throw new Error('El comentario no puede exceder los 2000 caracteres')
+        }
+
+        // Verificar que el reviewer esté asignado a esta evaluación
+        const { data: reviewer } = await supabase
+          .from('evaluation_reviewers')
+          .select('id')
+          .eq('evaluation_id', evaluation.evaluationId)
+          .eq('reviewer_employee_id', reviewerEmployeeId)
+          .single()
+
+        if (!reviewer) {
+          throw new Error('No tienes permiso para comentar en esta evaluación')
+        }
+
+        // Usar UPSERT para insertar o actualizar el comentario
+        const { error: commentError } = await supabase
+          .from('evaluation_general_comments')
+          .upsert(
+            {
+              evaluation_id: evaluation.evaluationId,
+              reviewer_employee_id: reviewerEmployeeId,
+              comment: generalComment.trim(),
+            },
+            {
+              onConflict: 'evaluation_id,reviewer_employee_id',
+              ignoreDuplicates: false,
+            }
+          )
+
+        if (commentError) {
+          throw new Error(
+            `Error al guardar el comentario general: ${commentError.message}`
+          )
+        }
       }
 
       // Si se completa, marcar reviewer como completado
@@ -285,6 +374,52 @@ export default function EvaluationAnswerForm({
           )
         })}
       </div>
+
+      {/* OBSERVACIONES GENERALES */}
+      {!evaluation.completed && (
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="mb-4">
+            <label
+              htmlFor="general-comment"
+              className="block text-sm font-semibold text-gray-900"
+            >
+              Observaciones Generales
+            </label>
+            <p className="mt-1 text-xs text-gray-600">
+              Opcional: Agrega comentarios generales sobre el desempeño del colaborador
+            </p>
+          </div>
+          <textarea
+            id="general-comment"
+            rows={4}
+            value={generalComment}
+            onChange={(e) => setGeneralComment(e.target.value)}
+            placeholder="Ingrese observaciones generales sobre el desempeño del colaborador..."
+            className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:text-gray-500 ${
+              generalComment.length > 2000
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+            }`}
+            disabled={loading}
+          />
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-xs text-gray-600">
+              Máximo 2000 caracteres
+            </span>
+            <span
+              className={`text-xs font-medium ${
+                generalComment.length > 2000
+                  ? 'text-red-600'
+                  : generalComment.length > 1800
+                    ? 'text-amber-600'
+                    : 'text-gray-500'
+              }`}
+            >
+              {generalComment.length} / 2000
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* STICKY FOOTER CON BOTONES */}
       {!evaluation.completed && (

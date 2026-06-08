@@ -12,6 +12,7 @@ import {
 
 import { createClient } from '@/lib/supabase/server'
 import { FeedbackService } from '@/lib/services/feedback.service'
+import { EvaluationCommentsService } from '@/lib/services/evaluation-comments.service'
 import { isValidRole } from '@/lib/auth/roles'
 
 // ============================================
@@ -59,6 +60,9 @@ export default async function MiFeedbackPage() {
 
   // Obtener estadísticas de feedback
   const stats = await FeedbackService.getEmployeeFeedbackStats(employeeId)
+
+  // Obtener comentarios generales recibidos
+  const comments = await EvaluationCommentsService.getEmployeeComments(employeeId)
 
   if (!stats) {
     return (
@@ -355,7 +359,69 @@ export default async function MiFeedbackPage() {
           </p>
         )}
       </div>
+{/* COMENTARIOS GENERALES */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="rounded-lg bg-indigo-100 p-2">
+            <MessageSquare className="h-5 w-5 text-indigo-600" />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-lg font-semibold text-gray-900">
+              Comentarios Generales
+            </h4>
+            <p className="text-sm text-gray-600">
+              Feedback anónimo de tus evaluadores
+            </p>
+          </div>
+          <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
+            {comments.length}
+          </span>
+        </div>
 
+        {comments.length === 0 ? (
+          <div className="rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-8">
+            <div className="text-center">
+              <MessageSquare className="mx-auto h-10 w-10 text-gray-400" />
+              <h3 className="mt-3 text-sm font-semibold text-gray-900">
+                Sin comentarios
+              </h3>
+              <p className="mt-1 text-sm text-gray-600">
+                Aún no has recibido comentarios generales en tus evaluaciones.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {comments.map((comment, index) => (
+              <div
+                key={index}
+                className="group rounded-xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-5 transition-all hover:shadow-md"
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="rounded-full bg-indigo-100 p-1.5">
+                      <MessageSquare className="h-3.5 w-3.5 text-indigo-600" />
+                    </div>
+                    <span className="text-xs font-medium text-gray-500">
+                      Evaluador anónimo
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {new Date(comment.date).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </div>
+                <p className="text-sm leading-relaxed text-gray-700">
+                  {comment.comment}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       {/* NOTA DE ANONIMATO */}
       <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
         <p className="text-sm text-blue-900">

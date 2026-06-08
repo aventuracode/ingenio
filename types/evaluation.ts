@@ -160,6 +160,104 @@ export interface CreateReviewerPayload {
 }
 
 // ============================================
+// TIPOS PARA DETALLE DE EVALUACIÓN
+// ============================================
+
+export interface ReviewerWithStatus {
+  id: string
+  nombre: string
+  apellido: string
+  puesto: string
+  avatar: string | null
+  tipo: string
+  tipoLabel: string
+  completado: boolean
+  fechaRespuesta: string | null
+}
+
+export interface CategoryScore {
+  category: string
+  averageScore: number
+  totalResponses: number
+}
+
+export interface EvaluationBasicData {
+  id: string
+  empleado: {
+    id: string
+    nombre: string
+    apellido: string
+    puesto: string
+    avatar: string | null
+  }
+  ciclo: {
+    id: string
+    nombre: string
+    descripcion: string
+  }
+  estado: string
+  fechaCreacion: string
+  progreso: {
+    completados: number
+    total: number
+    porcentaje: number
+  }
+  evaluadores: Array<{
+    id: string
+    nombre: string
+    apellido: string
+    puesto: string
+    avatar: string | null
+    tipo: string
+    tipoLabel: string
+    completado: boolean
+    fechaRespuesta: string | null
+  }>
+  resultados: {
+    promedioGeneral: number | null
+    totalRespuestas: number
+    totalPreguntas: number
+    scoresPorCategoria: Array<{
+      categoria: string
+      promedio: number
+      totalRespuestas: number
+    }>
+  }
+}
+
+export interface EvaluationDetailData {
+  id: string
+  empleado: {
+    id: string
+    nombre: string
+    apellido: string
+    puesto: string
+    avatar: string | null
+  }
+  ciclo: {
+    id: string
+    nombre: string
+    descripcion: string
+    fechaInicio: string
+    fechaFin: string
+  }
+  estado: string
+  estadoRaw: string
+  fechaCreacion: string
+  progreso: {
+    completados: number
+    total: number
+    porcentaje: number
+  }
+  resultados: {
+    promedioGeneral: number | null
+    totalRespuestas: number
+    scoresPorCategoria: CategoryScore[]
+  }
+  evaluadores: ReviewerWithStatus[]
+}
+
+// ============================================
 // HELPERS DE TRANSFORMACIÓN
 // ============================================
 

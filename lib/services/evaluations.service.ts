@@ -7,8 +7,18 @@ import type {
   EvaluationCycleOption,
   CreateEvaluationPayload,
   CreateReviewerPayload,
+  EvaluationDetailData,
+  EvaluationBasicData,
+  CategoryScore,
+  ReviewerWithStatus,
 } from '@/types/evaluation'
-import { transformEvaluationForUI } from '@/types/evaluation'
+import {
+  transformEvaluationForUI,
+  deriveEvaluationStatus,
+  getEvaluationStatusLabel,
+  calculateProgress,
+} from '@/types/evaluation'
+import { getReviewerTypeLabel } from '@/lib/constants/reviewer-types'
 
 // ============================================
 // SERVICIO DE EVALUACIONES
@@ -146,66 +156,250 @@ export class EvaluationsService {
   }
 
   /**
-   * Obtiene una evaluación específica por ID con todas sus relaciones
+   * Obtiene una evaluación específica por ID (versión simplificada)
+   * Retorna información básica sin resultados ni evaluadores
    */
-  static async getEvaluationById(id: string): Promise<EvaluationWithRelations | null> {
+  static async getEvaluationById(id: string): Promise<EvaluationBasicData | null> {
     const supabase = await createClient()
 
-    const { data, error } = await supabase
-      .from('evaluations')
-      .select(`
-        id,
-        employee_id,
-        cycle_id,
-        status,
-        created_at,
-        updated_at,
-        employee:employees (
+    try {
+      const { data, error } = await supabase
+        .from('evaluations')
+        .select(
+          `
           id,
-          nombre,
-          apellido,
-          email,
-          puesto,
-          avatar_url,
-          dni
-        ),
-        cycle:evaluation_cycles (
-          id,
-          name,
-          description,
-          start_date,
-          end_date,
-          status
-        ),
-        reviewers:evaluation_reviewers (
-          id,
-          evaluation_id,
-          reviewer_id,
-          relationship,
           status,
-          average_score,
-          invited_at,
-          started_at,
-          completed_at,
-          reviewer:employees (
+          created_at,
+          employee:employees!evaluations_employee_id_fkey (
             id,
             nombre,
             apellido,
-            email,
             puesto,
             avatar_url
+          ),
+          cycle:evaluation_cycles!evaluations_cycle_id_fkey (
+            id,
+            title,
+            description
+          ),
+          reviewers:evaluation_reviewers (
+            id,
+            reviewer_employee_id,
+            reviewer_type,
+            completed,
+            created_at,
+            reviewer:employees!evaluation_reviewers_reviewer_employee_id_fkey (
+              id,
+              nombre,
+              apellido,
+              puesto,
+              avatar_url
+            )
           )
+        `
         )
-      `)
-      .eq('id', id)
-      .single()
+        .eq('id', id)
+        .single()
 
-    if (error) {
-      console.error('Error fetching evaluation:', error)
+      if (error || !data) {
+        console.error('Error fetching evaluation:', error)
+        return null
+      }
+
+      // Extraer employee y cycle (vienen como objetos únicos)
+      const employee = data.employee as any
+      const cycle = data.cycle as any
+      const reviewers = (data.reviewers as any[]) || []
+
+      // Calcular progreso
+      const total = reviewers.length
+      const completados = reviewers.filter((r) => r.completed === true).length
+      const porcentaje = calculateProgress(completados, total)
+
+      // Obtener respuestas de evaluation_answers con información de preguntas
+      const { data: answers } = await supabase
+        .from('evaluation_answers')
+        .select(
+          `
+          reviewer_employee_id,
+          question_id,
+          score,
+          created_at,
+          question:evaluation_questions!evaluation_answers_question_id_fkey (
+            id,
+            category
+          )
+        `
+        )
+        .eq('evaluation_id', id)
+        .order('created_at', { ascending: true })
+
+      // Calcular resultados
+      const totalRespuestas = answers?.length || 0
+      const respuestasConScore = answers?.filter((a) => a.score !== null) || []
+      const promedioGeneral =
+        respuestasConScore.length > 0
+          ? respuestasConScore.reduce((sum, a) => sum + (a.score || 0), 0) /
+            respuestasConScore.length
+          : null
+
+      // Contar preguntas únicas respondidas
+      const preguntasUnicas = new Set(answers?.map((a) => a.question_id) || [])
+      const totalPreguntas = preguntasUnicas.size
+
+      // Calcular promedios por categoría
+      const categoriaMap = new Map<
+        string,
+        { scores: number[]; total: number }
+      >()
+
+      answers?.forEach((answer: any) => {
+        const categoria = answer.question?.category
+        if (categoria && answer.score !== null) {
+          if (!categoriaMap.has(categoria)) {
+            categoriaMap.set(categoria, { scores: [], total: 0 })
+          }
+          const cat = categoriaMap.get(categoria)!
+          cat.scores.push(answer.score)
+          cat.total++
+        }
+      })
+
+      const scoresPorCategoria = Array.from(categoriaMap.entries()).map(
+        ([categoria, data]) => ({
+          categoria,
+          promedio:
+            data.scores.reduce((sum, score) => sum + score, 0) /
+            data.scores.length,
+          totalRespuestas: data.total,
+        })
+      )
+
+      // Mapear evaluadores con su información completa
+      const evaluadores = reviewers.map((reviewer: any) => {
+        // Buscar la primera respuesta del reviewer para obtener la fecha
+        const firstAnswer = answers?.find(
+          (a) => a.reviewer_employee_id === reviewer.reviewer_employee_id
+        )
+
+        return {
+          id: reviewer.id,
+          nombre: reviewer.reviewer?.nombre || '',
+          apellido: reviewer.reviewer?.apellido || '',
+          puesto: reviewer.reviewer?.puesto || 'Sin puesto',
+          avatar: reviewer.reviewer?.avatar_url || null,
+          tipo: reviewer.reviewer_type,
+          tipoLabel: getReviewerTypeLabel(reviewer.reviewer_type),
+          completado: reviewer.completed || false,
+          fechaRespuesta: firstAnswer?.created_at || null,
+        }
+      })
+
+      return {
+        id: data.id,
+        empleado: {
+          id: employee?.id || '',
+          nombre: employee?.nombre || '',
+          apellido: employee?.apellido || '',
+          puesto: employee?.puesto || 'Sin puesto',
+          avatar: employee?.avatar_url || null,
+        },
+        ciclo: {
+          id: cycle?.id || '',
+          nombre: cycle?.title || 'Sin ciclo',
+          descripcion: cycle?.description || '',
+        },
+        estado: data.status || 'pending',
+        fechaCreacion: data.created_at || '',
+        progreso: {
+          completados,
+          total,
+          porcentaje,
+        },
+        evaluadores,
+        resultados: {
+          promedioGeneral,
+          totalRespuestas,
+          totalPreguntas,
+          scoresPorCategoria,
+        },
+      }
+    } catch (error) {
+      console.error('Error getting evaluation by id:', error)
       return null
     }
+  }
 
-    return data as EvaluationWithRelations
+  /**
+   * Actualiza una evaluación existente
+   */
+  static async updateEvaluation(
+    evaluationId: string,
+    data: {
+      employee_id?: string
+      cycle_id?: string
+      reviewers?: Array<{
+        reviewer_employee_id: string
+        reviewer_type: string
+      }>
+    }
+  ): Promise<{ success: boolean; error?: string }> {
+    try {
+      const supabase = await createClient()
+
+      // 1. Actualizar evaluación (empleado y/o ciclo)
+      const updateData: any = {}
+      if (data.employee_id) updateData.employee_id = data.employee_id
+      if (data.cycle_id) updateData.cycle_id = data.cycle_id
+
+      if (Object.keys(updateData).length > 0) {
+        const { error: updateError } = await supabase
+          .from('evaluations')
+          .update(updateData)
+          .eq('id', evaluationId)
+
+        if (updateError) {
+          throw new Error(`Error al actualizar evaluación: ${updateError.message}`)
+        }
+      }
+
+      // 2. Actualizar evaluadores si se proporcionaron
+      if (data.reviewers && data.reviewers.length > 0) {
+        // Eliminar evaluadores existentes
+        const { error: deleteError } = await supabase
+          .from('evaluation_reviewers')
+          .delete()
+          .eq('evaluation_id', evaluationId)
+
+        if (deleteError) {
+          throw new Error(`Error al eliminar evaluadores: ${deleteError.message}`)
+        }
+
+        // Insertar nuevos evaluadores
+        const reviewersToInsert = data.reviewers.map((r) => ({
+          evaluation_id: evaluationId,
+          reviewer_employee_id: r.reviewer_employee_id,
+          reviewer_type: r.reviewer_type,
+          completed: false,
+        }))
+
+        const { error: insertError } = await supabase
+          .from('evaluation_reviewers')
+          .insert(reviewersToInsert)
+
+        if (insertError) {
+          throw new Error(`Error al insertar evaluadores: ${insertError.message}`)
+        }
+      }
+
+      return { success: true }
+    } catch (error) {
+      console.error('Error updating evaluation:', error)
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      }
+    }
   }
 
   /**
@@ -252,6 +446,183 @@ export class EvaluationsService {
 
     if (updateError) {
       console.error('Error updating evaluation:', updateError)
+    }
+  }
+
+  /**
+   * Obtiene el detalle completo de una evaluación con resultados consolidados
+   */
+  static async getEvaluationDetail(
+    id: string
+  ): Promise<EvaluationDetailData | null> {
+    const supabase = await createClient()
+
+    try {
+      // Obtener evaluación con relaciones
+      const { data: evaluation, error: evalError } = await supabase
+        .from('evaluations')
+        .select(
+          `
+          id,
+          employee_id,
+          cycle_id,
+          status,
+          created_at,
+          employee:employees!evaluations_employee_id_fkey (
+            id,
+            nombre,
+            apellido,
+            puesto,
+            avatar_url
+          ),
+          cycle:evaluation_cycles!evaluations_cycle_id_fkey (
+            id,
+            title,
+            description,
+            start_date,
+            end_date
+          ),
+          reviewers:evaluation_reviewers (
+            id,
+            reviewer_employee_id,
+            reviewer_type,
+            completed,
+            created_at,
+            reviewer:employees!evaluation_reviewers_reviewer_employee_id_fkey (
+              id,
+              nombre,
+              apellido,
+              puesto,
+              avatar_url
+            )
+          )
+        `
+        )
+        .eq('id', id)
+        .single()
+
+      if (evalError || !evaluation) {
+        console.error('Error fetching evaluation detail:', evalError)
+        return null
+      }
+
+      // Obtener todas las respuestas de esta evaluación
+      const { data: answers } = await supabase
+        .from('evaluation_answers')
+        .select(
+          `
+          id,
+          evaluation_id,
+          reviewer_employee_id,
+          question_id,
+          score,
+          comment,
+          created_at,
+          question:evaluation_questions!evaluation_answers_question_id_fkey (
+            id,
+            question,
+            category
+          )
+        `
+        )
+        .eq('evaluation_id', id)
+
+      // Calcular promedio general
+      const allScores = answers?.map((a) => a.score) || []
+      const promedioGeneral =
+        allScores.length > 0
+          ? allScores.reduce((sum, score) => sum + score, 0) / allScores.length
+          : null
+
+      // Calcular promedios por categoría
+      const scoresByCategory: Record<string, number[]> = {}
+      answers?.forEach((answer: any) => {
+        const category = answer.question?.category || 'General'
+        if (!scoresByCategory[category]) {
+          scoresByCategory[category] = []
+        }
+        scoresByCategory[category].push(answer.score)
+      })
+
+      const scoresPorCategoria: CategoryScore[] = Object.entries(
+        scoresByCategory
+      ).map(([category, scores]) => ({
+        category,
+        averageScore: scores.reduce((sum, s) => sum + s, 0) / scores.length,
+        totalResponses: scores.length,
+      }))
+
+      // Mapear evaluadores con estado
+      const evaluadores: ReviewerWithStatus[] =
+        evaluation.reviewers?.map((reviewer: any) => {
+          // Buscar fecha de respuesta (primera respuesta del reviewer)
+          const reviewerAnswers = answers?.filter(
+            (a) => a.reviewer_employee_id === reviewer.reviewer_employee_id
+          )
+          const fechaRespuesta =
+            reviewerAnswers && reviewerAnswers.length > 0
+              ? reviewerAnswers[0].created_at
+              : null
+
+          return {
+            id: reviewer.id,
+            nombre: reviewer.reviewer?.nombre || '',
+            apellido: reviewer.reviewer?.apellido || '',
+            puesto: reviewer.reviewer?.puesto || 'Sin puesto',
+            avatar: reviewer.reviewer?.avatar_url || null,
+            tipo: reviewer.reviewer_type,
+            tipoLabel: getReviewerTypeLabel(reviewer.reviewer_type),
+            completado: reviewer.completed || false,
+            fechaRespuesta,
+          }
+        }) || []
+
+      // Calcular progreso
+      const completados = evaluadores.filter((e) => e.completado).length
+      const total = evaluadores.length
+      const porcentaje = calculateProgress(completados, total)
+
+      // Derivar estado
+      const estadoRaw = deriveEvaluationStatus(completados, total)
+
+      // Extraer employee y cycle (vienen como objetos únicos, no arrays)
+      const employee = evaluation.employee as any
+      const cycle = evaluation.cycle as any
+
+      return {
+        id: evaluation.id,
+        empleado: {
+          id: employee?.id || '',
+          nombre: employee?.nombre || '',
+          apellido: employee?.apellido || '',
+          puesto: employee?.puesto || 'Sin puesto',
+          avatar: employee?.avatar_url || null,
+        },
+        ciclo: {
+          id: cycle?.id || '',
+          nombre: cycle?.title || 'Sin ciclo',
+          descripcion: cycle?.description || '',
+          fechaInicio: cycle?.start_date || '',
+          fechaFin: cycle?.end_date || '',
+        },
+        estado: getEvaluationStatusLabel(estadoRaw),
+        estadoRaw,
+        fechaCreacion: evaluation.created_at || '',
+        progreso: {
+          completados,
+          total,
+          porcentaje,
+        },
+        resultados: {
+          promedioGeneral,
+          totalRespuestas: allScores.length,
+          scoresPorCategoria,
+        },
+        evaluadores,
+      }
+    } catch (error) {
+      console.error('Error getting evaluation detail:', error)
+      return null
     }
   }
 

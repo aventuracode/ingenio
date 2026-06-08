@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { EvaluationsService } from '@/lib/services/evaluations.service'
-import EvaluationForm from '@/components/evaluations/EvaluationForm'
+import EvaluationFormUnified from '@/components/evaluations/EvaluationFormUnified'
 
 // ============================================
 // PÁGINA: NUEVA EVALUACIÓN - SERVER COMPONENT
@@ -60,7 +60,11 @@ export default async function NewEvaluationPage() {
           </Link>
         </div>
       ) : (
-        <EvaluationForm employees={employees} cycles={cycles} />
+        <EvaluationFormUnified
+          mode="create"
+          employees={employees}
+          cycles={cycles}
+        />
       )}
     </div>
   )

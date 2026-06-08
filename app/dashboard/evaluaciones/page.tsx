@@ -8,7 +8,9 @@ import {
   Star,
   Calendar,
   User,
-  Users
+  Users,
+  Eye,
+  Pencil
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -152,6 +154,9 @@ export default async function EvaluacionesPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                   Fecha
                 </th>
+                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-600">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -267,6 +272,29 @@ export default async function EvaluacionesPage() {
                         month: 'short',
                         year: 'numeric',
                       })}
+                    </div>
+                  </td>
+
+                  {/* ACCIONES */}
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <div className="flex items-center justify-end gap-2">
+                      <Link
+                        href={`/dashboard/evaluaciones/${evaluation.id}`}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        title="Ver detalle"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="hidden sm:inline">Ver</span>
+                      </Link>
+                      { evaluation.estadoRaw === 'pending' && <Link
+                        href={`/dashboard/evaluaciones/${evaluation.id}/edit`}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 shadow-sm transition-all hover:bg-blue-100 hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        title="Editar evaluación"
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="hidden sm:inline">Editar</span>
+                      </Link>
+                      }
                     </div>
                   </td>
                 </tr>
