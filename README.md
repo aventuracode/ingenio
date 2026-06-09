@@ -1,15 +1,15 @@
 # Ingenio - HR Platform
 
-Sistema de Recursos Humanos con Evaluaciones 360°, gestión de roles y permisos basado en Next.js 14, Supabase y TypeScript.
+Sistema de Recursos Humanos con Evaluaciones 360°, gestión de roles y permisos basado en Next.js 16, React 19, Supabase y TypeScript.
 
-**Stack:** Next.js 14 + TypeScript + Supabase + TailwindCSS
+**Stack:** Next.js 16 + React 19 + TypeScript + Supabase + TailwindCSS 4
 
 ---
 
 ## 📚 Documentación
 
 - 📖 **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Arquitectura completa del sistema
-- 🔧 **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Solución de problemas
+- � **[README_AUTH.md](./README_AUTH.md)** - Sistema de autenticación y roles
 
 ---
 
@@ -87,9 +87,8 @@ En el dashboard de Vercel, ve a **Settings → Environment Variables** y agrega:
 
 El proyecto ya está configurado con:
 
-- `output: 'standalone'` en `next.config.ts` para optimizar el despliegue
-- `eslint.ignoreDuringBuilds: true` para evitar fallos por warnings de lint
-- `.env.example` con las variables requeridas
+- `output: 'standalone'` en `next.config.ts` para optimizar el despliegue serverless
+- `.env.example` con las variables requeridas documentadas
 
 ### 4. Configurar dominio de imágenes (ya incluido)
 
@@ -128,18 +127,27 @@ vercel --prod
 ```
 app/
 ├── dashboard/              # Dashboards por rol
+│   ├── page.tsx            # Dashboard dinámico
 │   ├── empleados/          # Gestión empleados
 │   ├── evaluaciones/       # Evaluaciones 360°
+│   │   ├── ciclos/         # Gestión de ciclos
+│   │   └── [id]/           # Detalle y edición
+│   ├── mis-evaluaciones/   # Evaluaciones asignadas
 │   ├── mi-feedback/        # Feedback anónimo
-│   └── analytics/          # Analytics
-└── auth/                   # Autenticación
+│   ├── analytics/          # Analytics
+│   └── usuarios/           # Solo admin
+├── login/                  # Página de login
+├── register/               # Página de registro
+└── api/                    # API Routes
 
 lib/
 ├── auth/                   # Roles y permisos
 ├── services/               # Service Layer
+├── config/                 # Navegación por rol
 └── supabase/               # Cliente Supabase
 
-types/                      # TypeScript DTOs
+hooks/                      # React hooks (useAuth, useCurrentRole)
+types/                      # TypeScript types
 components/                 # React components
 supabase/policy/            # RLS Policies SQL
 ```
@@ -162,8 +170,8 @@ Ver detalles completos en [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ## 🆘 Ayuda
 
-- 🐛 **Problemas?** → [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
-- 📖 **Arquitectura completa** → [ARCHITECTURE.md](./ARCHITECTURE.md)
+- � **Arquitectura completa** → [ARCHITECTURE.md](./ARCHITECTURE.md)
+- � **Autenticación y roles** → [README_AUTH.md](./README_AUTH.md)
 
 ---
 
