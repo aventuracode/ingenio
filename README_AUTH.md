@@ -1,4 +1,4 @@
-# Sistema de Autenticación con Supabase
+# Sistema de Autenticación y Roles con Supabase
 
 ## 🎯 Características Implementadas
 
@@ -6,44 +6,55 @@
 - **Login** con email y password
 - **Registro** de nuevos usuarios
 - **Logout** funcional
-- **Persistencia de sesión** automática
-- **Protección de rutas** mediante middleware
+- **Persistencia de sesión** automática via cookies
+- **Protección de rutas** mediante middleware/proxy
+
+### ✅ Sistema de Roles (RBAC)
+- **4 roles**: `admin`, `rrhh`, `manager`, `employee`
+- **Jerarquía**: `admin > rrhh > manager > employee`
+- **Navegación dinámica** según rol (Sidebar adaptativo)
+- **Protección de rutas por rol** (ej: solo admin/rrhh pueden acceder a `/dashboard/usuarios`)
+- **Cache de rol** a nivel de módulo para evitar re-fetches innecesarios
 
 ### ✅ Componentes y Páginas
 
 #### Páginas de Autenticación
 - `app/login/page.tsx` - Página de inicio de sesión
-- `app/register/page.tsx` - Página de registro con validación
+- `app/register/page.tsx` - Página de registro
 
-#### Dashboard
-- `app/dashboard/layout.tsx` - Layout principal del dashboard
-- `app/dashboard/page.tsx` - Página principal con KPIs
-- `app/dashboard/empleados/page.tsx` - Gestión de empleados
-- `app/dashboard/usuarios/page.tsx` - Gestión de usuarios
+#### Dashboard (dinámico por rol)
+- `app/dashboard/layout.tsx` - Layout principal con Sidebar
+- `app/dashboard/page.tsx` - Dashboard dinámico (renderiza componente según rol)
+- `app/dashboard/empleados/` - Gestión de empleados (admin, rrhh, manager)
+- `app/dashboard/evaluaciones/` - Gestión de evaluaciones 360°
+- `app/dashboard/evaluaciones/ciclos/` - Gestión de ciclos de evaluación
+- `app/dashboard/mis-evaluaciones/` - Evaluaciones asignadas al reviewer
+- `app/dashboard/mi-feedback/` - Feedback anónimo recibido
+- `app/dashboard/analytics/` - Analytics (admin, rrhh)
+- `app/dashboard/usuarios/` - Gestión de usuarios (solo admin)
 
 #### Componentes Reutilizables
-- `components/dashboard/Sidebar.tsx` - Sidebar con navegación y logout
+- `components/dashboard/Sidebar.tsx` - Navegación dinámica por rol
 - `components/dashboard/Header.tsx` - Header con info del usuario
+- `components/dashboard/DashboardRRHH.tsx` - Dashboard para admin/rrhh
+- `components/dashboard/DashboardEmployee.tsx` - Dashboard para employee/manager
 
 ### ✅ Infraestructura de Supabase
 
 #### Clientes
 - `lib/supabase/client.ts` - Cliente para componentes del navegador
 - `lib/supabase/server.ts` - Cliente para Server Components
-- `lib/supabase/middleware.ts` - Manejo de sesiones en middleware
+- `lib/supabase/middleware.ts` - Helper para manejo de sesiones
 
 #### Hooks
-- `hooks/useAuth.ts` - Hook personalizado con:
-  - `user` - Usuario actual
-  - `loading` - Estado de carga
-  - `login(email, password)` - Función de login
-  - `register(email, password)` - Función de registro
-  - `logout()` - Función de logout
+- `hooks/useAuth.ts` - Hook de autenticación (login, register, logout, user)
+- `hooks/useCurrentRole.ts` - Hook de rol actual con cache y manejo de eventos auth
 
 ### ✅ Protección de Rutas
 
-El middleware (`middleware.ts`) protege automáticamente:
+El middleware (`middleware.ts` / `proxy.ts`) protege:
 - Rutas `/dashboard/*` requieren autenticación
+- Rutas específicas requieren roles (ej: `/dashboard/usuarios` → solo `admin`)
 - Usuarios autenticados son redirigidos de `/login` y `/register` a `/dashboard`
 - Usuarios no autenticados son redirigidos a `/login`
 
@@ -97,31 +108,46 @@ Visita: `http://localhost:3000`
 - ✅ Validación de formularios
 - ✅ Manejo de errores
 
-## 📁 Estructura de Archivos
+## 📁 Estructura de Archivos (Auth & Roles)
 
 ```
 ingenio-app/
 ├── app/
 │   ├── dashboard/
-│   │   ├── layout.tsx          # Layout del dashboard
-│   │   ├── page.tsx            # Dashboard principal
-│   │   ├── empleados/page.tsx
-│   │   └── usuarios/page.tsx
-│   ├── login/page.tsx          # Página de login
-│   ├── register/page.tsx       # Página de registro
-│   └── page.tsx                # Redirección automática
+│   │   ├── layout.tsx              # Layout con Sidebar + Header
+│   │   ├── page.tsx                # Dashboard dinámico por rol
+│   │   ├── empleados/              # Gestión de empleados
+│   │   ├── evaluaciones/           # Evaluaciones 360°
+│   │   ├── mis-evaluaciones/       # Mis evaluaciones como reviewer
+│   │   ├── mi-feedback/            # Feedback anónimo
+│   │   ├── analytics/              # Reportes
+│   │   └── usuarios/               # Solo admin
+│   ├── login/page.tsx              # Login
+│   ├── register/page.tsx           # Registro
+│   └── page.tsx                    # Landing / redirección
+│
 ├── components/
 │   └── dashboard/
-│       ├── Sidebar.tsx         # Sidebar con logout
-│       └── Header.tsx          # Header con usuario
+│       ├── Sidebar.tsx             # Navegación dinámica por rol
+│       ├── Header.tsx              # Header con usuario
+│       ├── DashboardRRHH.tsx     # Dashboard admin/rrhh
+│       └── DashboardEmployee.tsx   # Dashboard employee/manager
+│
 ├── hooks/
-│   └── useAuth.ts              # Hook de autenticación
+│   ├── useAuth.ts                  # Autenticación (login, logout, user)
+│   └── useCurrentRole.ts           # Rol actual con cache
+│
 ├── lib/
+│   ├── auth/
+│   │   └── roles.ts                # Definición y validación de roles
+│   ├── config/
+│   │   └── navigation.ts         # Config de navegación por rol
 │   └── supabase/
-│       ├── client.ts           # Cliente browser
-│       ├── server.ts           # Cliente server
-│       └── middleware.ts       # Middleware helper
-└── middleware.ts               # Protección de rutas
+│       ├── client.ts               # Cliente browser
+│       ├── server.ts               # Cliente server
+│       └── middleware.ts           # Helper de sesiones
+│
+└── middleware.ts                   # Protección de rutas + roles
 ```
 
 ## 🧪 Probar la Autenticación
