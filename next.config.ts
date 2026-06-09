@@ -1,11 +1,6 @@
 import type { NextConfig } from "next";
 
-interface ExtendedNextConfig extends NextConfig {
-  eslint?: { ignoreDuringBuilds?: boolean };
-  typescript?: { ignoreBuildErrors?: boolean };
-}
-
-const nextConfig: ExtendedNextConfig = {
+const nextConfig: NextConfig = {
   output: 'standalone',
   images: {
     remotePatterns: [
@@ -19,10 +14,6 @@ const nextConfig: ExtendedNextConfig = {
       },
     ],
   },
-  // Ignorar ESLint durante el build para evitar fallos por warnings
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
 };
 
-export default nextConfig as NextConfig;
+export default nextConfig;
