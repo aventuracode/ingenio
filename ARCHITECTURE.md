@@ -18,20 +18,20 @@ Sistema de Recursos Humanos con Evaluaciones 360°, gestión de roles y permisos
 ## 🏗️ Tech Stack
 
 ### **Frontend:**
-- **Next.js 14** (App Router, Server Components)
-- **React 18** (TypeScript)
-- **TailwindCSS** (Styling)
+- **Next.js 16.2.5** (App Router, Server Components, Turbopack)
+- **React 19.2.4** (TypeScript)
+- **TailwindCSS 4** (Styling)
 - **Lucide React** (Icons)
 
 ### **Backend:**
 - **Supabase** (PostgreSQL + Auth + RLS)
-- **Server Actions** (Next.js)
+- **API Routes** (Next.js App Router)
 - **TypeScript** (Type safety)
 
 ### **Autenticación:**
 - **Supabase Auth** (Email/Password)
 - **Row Level Security** (RLS Policies)
-- **Middleware** (Route protection)
+- **Middleware / Proxy** (Route protection)
 
 ---
 
@@ -40,59 +40,70 @@ Sistema de Recursos Humanos con Evaluaciones 360°, gestión de roles y permisos
 ```
 ingenio-app/
 ├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Rutas de autenticación
-│   │   └── login/
+│   ├── api/                      # API Routes
+│   │   └── evaluations/
+│   │       └── update/
 │   ├── dashboard/                # Rutas protegidas
-│   │   ├── page.tsx             # Dashboard dinámico por rol
-│   │   ├── empleados/           # Gestión de empleados
-│   │   ├── evaluaciones/        # Gestión de evaluaciones
-│   │   ├── mis-evaluaciones/    # Evaluaciones asignadas
-│   │   ├── mi-feedback/         # Feedback anónimo
-│   │   └── analytics/           # Analytics y reportes
-│   └── layout.tsx
+│   │   ├── page.tsx              # Dashboard dinámico por rol
+│   │   ├── layout.tsx            # Layout con Sidebar
+│   │   ├── empleados/            # Gestión de empleados
+│   │   ├── evaluaciones/         # Gestión de evaluaciones
+│   │   ├── mis-evaluaciones/     # Evaluaciones asignadas
+│   │   ├── mi-feedback/          # Feedback anónimo
+│   │   └── analytics/            # Analytics y reportes
+│   ├── login/                    # Página de login
+│   ├── register/                 # Página de registro
+│   ├── layout.tsx                # Root layout
+│   └── page.tsx                  # Landing page
 │
 ├── components/                   # Componentes React
 │   ├── dashboard/
-│   │   ├── Sidebar.tsx          # Navegación dinámica
-│   │   ├── DashboardRRHH.tsx    # Dashboard RRHH/Admin
-│   │   └── DashboardEmployee.tsx # Dashboard Employee
+│   │   └── Sidebar.tsx            # Navegación dinámica por rol
 │   ├── evaluations/
+│   │   ├── EvaluationForm.tsx
+│   │   ├── EvaluationFormUnified.tsx
+│   │   ├── EvaluationEditForm.tsx
 │   │   ├── EvaluationAnswerForm.tsx
-│   │   └── QuestionCard.tsx
-│   └── ui/
-│       └── ConfirmModal.tsx     # Modal reutilizable
+│   │   ├── CycleTable.tsx
+│   │   └── CycleForm.tsx
+│   ├── employees/
+│   ├── ui/
+│   ├── login/
+│   └── register/
 │
 ├── lib/                          # Lógica de negocio
 │   ├── auth/
-│   │   ├── roles.ts             # Definición de roles
-│   │   └── permissions.ts       # Sistema de permisos
+│   │   └── roles.ts              # Definición de roles
 │   ├── config/
-│   │   └── navigation.ts        # Navegación por rol
+│   │   └── navigation.ts         # Navegación por rol
+│   ├── constants/
+│   │   └── evaluation-cycle-status.ts
 │   ├── services/
 │   │   ├── evaluations.service.ts
+│   │   ├── evaluation-cycles.service.ts
 │   │   ├── feedback.service.ts
+│   │   ├── evaluation-comments.service.ts
 │   │   └── reviewer-evaluations.service.ts
 │   └── supabase/
-│       ├── client.ts
-│       └── server.ts
+│       ├── client.ts             # Cliente browser
+│       ├── server.ts             # Cliente server
+│       └── middleware.ts         # Auth middleware
 │
 ├── types/                        # TypeScript types
 │   ├── evaluation.ts
-│   ├── evaluation-dtos.ts       # DTOs seguros
+│   ├── evaluation-cycle.ts
+│   ├── employee.ts
 │   └── reviewer-evaluation.ts
 │
 ├── hooks/                        # React hooks
-│   └── useCurrentRole.ts        # Hook de rol actual
+│   ├── useAuth.ts
+│   └── useCurrentRole.ts         # Hook de rol actual
 │
-├── middleware.ts                 # Protección de rutas
+├── middleware.ts                 # Route protection (deprecated → proxy.ts)
 │
 └── supabase/                     # Configuración Supabase
     ├── migrations/
-    └── policy/                   # RLS policies
-        ├── evaluation_cycles.policy.sql
-        ├── evaluation_reviewers.policy.sql
-        ├── evaluation_answers.policy.sql
-        └── apply_all_policies.sql
+    └── policy/                   # RLS policies SQL
 ```
 
 ---
@@ -529,25 +540,27 @@ export default async function DashboardPage() {
 
 ## 🛡️ Protección de Rutas
 
-### **Middleware:**
+### **Proxy (Middleware) - Next.js 16:**
+
+> Nota: Next.js 16 deprecó `middleware.ts` en favor de `proxy.ts`.
 
 ```typescript
-// middleware.ts
+// proxy.ts (o middleware.ts - ambos soportados)
 export async function middleware(request: NextRequest) {
   const supabase = createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   // Verificar autenticación
   if (!user && !isPublicRoute(pathname)) {
     return NextResponse.redirect('/login')
   }
-  
+
   // Verificar permisos por ruta
   const requiredPermission = getRequiredPermission(pathname)
   if (requiredPermission && !hasPermission(user, requiredPermission)) {
     return NextResponse.redirect('/dashboard')
   }
-  
+
   return response
 }
 
@@ -624,8 +637,11 @@ Card para responder preguntas de evaluación:
 ## 🔧 Configuración
 
 ### **Variables de Entorno:**
+
+Ver `.env.example` para la lista completa de variables requeridas:
+
 ```bash
-# .env.local
+# .env.local (desarrollo) o Variables de Entorno en Vercel (producción)
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 ```
