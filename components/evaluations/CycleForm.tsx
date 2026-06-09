@@ -136,7 +136,6 @@ export default function CycleForm({ cycle, mode }: CycleFormProps) {
         router.refresh()
       }, 1500)
     } catch (err) {
-      console.error('Error saving cycle:', err)
       setError(err instanceof Error ? err.message : 'Error al guardar el ciclo')
       setLoading(false)
     }

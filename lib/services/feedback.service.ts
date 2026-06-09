@@ -45,7 +45,6 @@ export class FeedbackService {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching employee feedback:', error)
       return []
     }
 
@@ -104,7 +103,6 @@ export class FeedbackService {
       .in('evaluation_id', evaluationIds)
 
     if (error) {
-      console.error('Error fetching feedback stats:', error)
       return null
     }
 

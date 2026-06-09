@@ -13,7 +13,7 @@ export default async function EmpleadosPage() {
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching employees:', error)
+    // Silently handle error
   }
 
   const employeeList: Employee[] = employees || []

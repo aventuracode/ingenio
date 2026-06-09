@@ -54,7 +54,6 @@ export default function CycleTable({ cycles }: CycleTableProps) {
 
       router.refresh()
     } catch (err) {
-      console.error('Error deleting cycle:', err)
       setError(err instanceof Error ? err.message : 'Error al eliminar el ciclo')
     } finally {
       setLoading(null)
@@ -88,7 +87,6 @@ export default function CycleTable({ cycles }: CycleTableProps) {
 
       router.refresh()
     } catch (err) {
-      console.error('Error activating cycle:', err)
       setError(err instanceof Error ? err.message : 'Error al activar el ciclo')
     } finally {
       setLoading(null)
@@ -114,7 +112,6 @@ export default function CycleTable({ cycles }: CycleTableProps) {
 
       router.refresh()
     } catch (err) {
-      console.error('Error completing cycle:', err)
       setError(err instanceof Error ? err.message : 'Error al completar el ciclo')
     } finally {
       setLoading(null)
@@ -140,7 +137,6 @@ export default function CycleTable({ cycles }: CycleTableProps) {
 
       router.refresh()
     } catch (err) {
-      console.error('Error archiving cycle:', err)
       setError(err instanceof Error ? err.message : 'Error al archivar el ciclo')
     } finally {
       setLoading(null)

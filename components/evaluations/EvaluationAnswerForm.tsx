@@ -167,11 +167,6 @@ export default function EvaluationAnswerForm({
         complete,
       }
 
-      // Mostrar payload en consola para verificación
-      console.log('=== PAYLOAD COMPLETO DE EVALUACIÓN ===')
-      console.log(JSON.stringify(fullPayload, null, 2))
-      console.log('======================================')
-
       // Usar UPSERT para insertar o actualizar respuestas
       // onConflict especifica las columnas del constraint unique
       const { error: upsertError } = await supabase
@@ -262,7 +257,6 @@ export default function EvaluationAnswerForm({
         router.refresh()
       }, 2000)
     } catch (err) {
-      console.error('Error saving answers:', err)
       setError(err instanceof Error ? err.message : 'Error al guardar respuestas')
       setLoading(false)
     }

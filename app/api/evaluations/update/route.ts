@@ -35,6 +35,17 @@ export async function POST(request: Request) {
       )
     }
 
+    // Validar que todos los reviewer_employee_id sean válidos
+    const invalidReviewers = reviewers.filter(
+      (r: any) => !r.reviewer_employee_id || typeof r.reviewer_employee_id !== 'string'
+    )
+    
+    if (invalidReviewers.length > 0) {
+      return NextResponse.json(
+        { error: 'Todos los evaluadores deben tener un ID de empleado válido' },
+        { status: 400 }
+      )
+    }
     // Actualizar evaluación
     const result = await EvaluationsService.updateEvaluation(evaluationId, {
       employee_id,
@@ -54,7 +65,6 @@ export async function POST(request: Request) {
       message: 'Evaluación actualizada correctamente',
     })
   } catch (error) {
-    console.error('Error in update evaluation API:', error)
     return NextResponse.json(
       {
         error:

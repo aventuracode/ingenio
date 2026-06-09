@@ -31,7 +31,6 @@ export class EvaluationCyclesService {
       .order('created_at', { ascending: false })
 
     if (cyclesError) {
-      console.error('Error fetching cycles:', cyclesError)
       return []
     }
 
@@ -45,7 +44,7 @@ export class EvaluationCyclesService {
       .select('cycle_id, status')
 
     if (countsError) {
-      console.error('Error fetching evaluation counts:', countsError)
+      // Silently handle error
     }
 
     // Mapear estadísticas
@@ -98,7 +97,6 @@ export class EvaluationCyclesService {
       .single()
 
     if (error) {
-      console.error('Error fetching cycle:', error)
       return null
     }
 
@@ -150,7 +148,6 @@ export class EvaluationCyclesService {
         .single()
 
       if (error) {
-        console.error('Error creating cycle:', error)
         return {
           success: false,
           error: `Error al crear el ciclo: ${error.message}`,
@@ -162,7 +159,6 @@ export class EvaluationCyclesService {
         cycleId: data.id,
       }
     } catch (error) {
-      console.error('Unexpected error creating cycle:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error inesperado',
@@ -216,7 +212,6 @@ export class EvaluationCyclesService {
         .eq('id', id)
 
       if (error) {
-        console.error('Error updating cycle:', error)
         return {
           success: false,
           error: `Error al actualizar el ciclo: ${error.message}`,
@@ -225,7 +220,6 @@ export class EvaluationCyclesService {
 
       return { success: true }
     } catch (error) {
-      console.error('Unexpected error updating cycle:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error inesperado',
@@ -262,7 +256,6 @@ export class EvaluationCyclesService {
         .eq('id', id)
 
       if (error) {
-        console.error('Error deleting cycle:', error)
         return {
           success: false,
           error: `Error al eliminar el ciclo: ${error.message}`,
@@ -271,7 +264,6 @@ export class EvaluationCyclesService {
 
       return { success: true }
     } catch (error) {
-      console.error('Unexpected error deleting cycle:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error inesperado',
@@ -306,13 +298,12 @@ export class EvaluationCyclesService {
         .neq('id', id)
 
       if (deactivateError) {
-        console.error('Error deactivating cycles:', deactivateError)
+        // Silently handle error
       }
 
       // Activar el ciclo seleccionado
       return this.updateCycleStatus(id, 'active')
     } catch (error) {
-      console.error('Unexpected error activating cycle:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error inesperado',

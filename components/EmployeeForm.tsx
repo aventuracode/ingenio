@@ -84,7 +84,6 @@ export default function EmployeeForm({ employeeId, initialData }: EmployeeFormPr
       router.push('/dashboard/empleados')
       router.refresh()
     } catch (err) {
-      console.error(`Error ${employeeId ? 'updating' : 'creating'} employee:`, err)
       setError(err instanceof Error ? err.message : `Error al ${employeeId ? 'actualizar' : 'crear'} el empleado`)
       setLoading(false)
     }

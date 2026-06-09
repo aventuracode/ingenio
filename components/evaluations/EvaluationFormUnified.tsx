@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, FormEvent, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
@@ -72,6 +72,9 @@ export default function EvaluationFormUnified({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  
+  // Ref para rastrear si ya se cargaron los datos iniciales
+  const hasLoadedInitialData = useRef(false)
 
   // Estado del selector de reviewer
   const [selectedReviewerEmployeeId, setSelectedReviewerEmployeeId] = useState<string>('')
@@ -82,24 +85,30 @@ export default function EvaluationFormUnified({
   // ============================================
 
   useEffect(() => {
-    if (isEditMode && initialData) {
+    // Solo cargar datos iniciales UNA VEZ
+    if (isEditMode && initialData && !hasLoadedInitialData.current && employees.length > 0) {
       // Mapear evaluadores existentes al formato del formulario
-      const existingReviewers: ReviewerSelection[] = initialData.evaluadores.map(
-        (evaluador) => {
+      // IMPORTANTE: Solo incluir evaluadores que existen en la lista de empleados disponibles
+      const existingReviewers: ReviewerSelection[] = initialData.evaluadores
+        .map((evaluador) => {
           const employee = employees.find((e) => e.id === evaluador.id)
+          
+          // Si el empleado no existe en la lista, retornar null para filtrarlo
+          if (!employee) {
+            return null
+          }
+          
           return {
-            employee: employee || {
-              id: evaluador.id,
-              nombre: evaluador.nombre,
-              apellido: evaluador.apellido,
-              puesto: evaluador.puesto,
-              avatar_url: evaluador.avatar || undefined,
-            },
+            employee,
             reviewerType: evaluador.tipo as any,
           }
-        }
-      )
+        })
+        .filter((r): r is ReviewerSelection => r !== null)
+      
+      // Mostrar advertencia si se filtraron evaluadores
+      const filteredCount = initialData.evaluadores.length - existingReviewers.length
       setReviewers(existingReviewers)
+      hasLoadedInitialData.current = true
     }
   }, [isEditMode, initialData, employees])
 
@@ -113,26 +122,26 @@ export default function EvaluationFormUnified({
       return
     }
 
-    // Verificar que no esté ya agregado
+    // Verificar que no esté ya agregado con el mismo rol
     const alreadyAdded = reviewers.some(
-      (r) => r.employee.id === selectedReviewerEmployeeId
+      (r) => r.employee.id === selectedReviewerEmployeeId && r.reviewerType === selectedReviewerType
     )
 
     if (alreadyAdded) {
-      setError('Este empleado ya fue agregado como evaluador')
+      setError('Este empleado ya fue agregado con este rol de evaluador')
       return
     }
 
     const employee = employees.find((e) => e.id === selectedReviewerEmployeeId)
     if (!employee) return
-
-    setReviewers([
+    const newReviewers = [
       ...reviewers,
       {
         employee,
         reviewerType: selectedReviewerType as any,
       },
-    ])
+    ]
+    setReviewers(newReviewers)
 
     // Reset selector
     setSelectedReviewerEmployeeId('')
@@ -140,8 +149,8 @@ export default function EvaluationFormUnified({
     setError(null)
   }
 
-  const handleRemoveReviewer = (employeeId: string) => {
-    setReviewers(reviewers.filter((r) => r.employee.id !== employeeId))
+  const handleRemoveReviewer = (index: number) => {
+    setReviewers(reviewers.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -172,6 +181,15 @@ export default function EvaluationFormUnified({
 
       if (isEditMode && initialData) {
         // MODO EDICIÓN: Actualizar evaluación completa
+        
+        // Eliminar duplicados basados en employee.id + reviewerType
+        const uniqueReviewers = reviewers.filter((reviewer, index, self) => 
+          index === self.findIndex((r) => 
+            r.employee.id === reviewer.employee.id && 
+            r.reviewerType === reviewer.reviewerType
+          )
+        )
+        
         const response = await fetch('/api/evaluations/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -179,7 +197,7 @@ export default function EvaluationFormUnified({
             evaluationId: initialData.id,
             employee_id: selectedEmployeeId,
             cycle_id: selectedCycleId,
-            reviewers: reviewers.map((r) => ({
+            reviewers: uniqueReviewers.map((r) => ({
               reviewer_employee_id: r.employee.id,
               reviewer_type: r.reviewerType,
             })),
@@ -248,7 +266,6 @@ export default function EvaluationFormUnified({
         }, 1500)
       }
     } catch (err) {
-      console.error('Error submitting evaluation:', err)
       setError(
         err instanceof Error
           ? err.message
@@ -405,13 +422,13 @@ export default function EvaluationFormUnified({
           </div>
         ) : (
           <div className="space-y-3">
-            {reviewers.map((reviewer) => {
+            {reviewers.map((reviewer, index) => {
               const typeInfo = REVIEWER_TYPES.find(
                 (t) => t.value === reviewer.reviewerType
               )
               return (
                 <div
-                  key={reviewer.employee.id}
+                  key={`${reviewer.employee.id}-${reviewer.reviewerType}-${index}`}
                   className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:bg-gray-50"
                 >
                   <div className="flex items-center gap-3">
@@ -446,7 +463,7 @@ export default function EvaluationFormUnified({
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleRemoveReviewer(reviewer.employee.id)}
+                    onClick={() => handleRemoveReviewer(index)}
                     disabled={loading}
                     className="rounded-lg p-2 text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                     title="Eliminar evaluador"

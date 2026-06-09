@@ -77,7 +77,6 @@ export class EvaluationCommentsService {
 
       return { success: true }
     } catch (error) {
-      console.error('Error saving comment:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error inesperado',
@@ -111,7 +110,6 @@ export class EvaluationCommentsService {
 
       return data as ReviewerComment
     } catch (error) {
-      console.error('Error fetching reviewer comment:', error)
       throw new Error(
         error instanceof Error ? error.message : 'Error al obtener comentario'
       )
@@ -180,7 +178,6 @@ export class EvaluationCommentsService {
           },
         }))
     } catch (error) {
-      console.error('Error fetching evaluation comments:', error)
       throw new Error(
         error instanceof Error ? error.message : 'Error al obtener comentarios'
       )
@@ -230,7 +227,6 @@ export class EvaluationCommentsService {
 
       return employeeComments
     } catch (error) {
-      console.error('Error fetching employee comments:', error)
       throw new Error(
         error instanceof Error ? error.message : 'Error al obtener comentarios'
       )

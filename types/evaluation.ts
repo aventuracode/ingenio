@@ -203,7 +203,8 @@ export interface EvaluationBasicData {
     porcentaje: number
   }
   evaluadores: Array<{
-    id: string
+    id: string // ID del empleado
+    reviewerId: string // ID del reviewer en evaluation_reviewers
     nombre: string
     apellido: string
     puesto: string

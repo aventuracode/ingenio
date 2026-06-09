@@ -72,7 +72,6 @@ export class EvaluationsService {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching evaluations:', error)
       return [] // Retornar array vacío en caso de error
     }
 
@@ -104,7 +103,6 @@ export class EvaluationsService {
       `)
 
     if (error) {
-      console.error('Error fetching evaluation stats:', error)
       return {
         activas: 0,
         pendientes: 0,
@@ -202,7 +200,6 @@ export class EvaluationsService {
         .single()
 
       if (error || !data) {
-        console.error('Error fetching evaluation:', error)
         return null
       }
 
@@ -283,7 +280,8 @@ export class EvaluationsService {
         )
 
         return {
-          id: reviewer.id,
+          id: reviewer.reviewer_employee_id, // ← ID del empleado, NO del reviewer
+          reviewerId: reviewer.id, // ← ID del reviewer en evaluation_reviewers
           nombre: reviewer.reviewer?.nombre || '',
           apellido: reviewer.reviewer?.apellido || '',
           puesto: reviewer.reviewer?.puesto || 'Sin puesto',
@@ -325,7 +323,6 @@ export class EvaluationsService {
         },
       }
     } catch (error) {
-      console.error('Error getting evaluation by id:', error)
       return null
     }
   }
@@ -388,13 +385,15 @@ export class EvaluationsService {
           .insert(reviewersToInsert)
 
         if (insertError) {
-          throw new Error(`Error al insertar evaluadores: ${insertError.message}`)
+          throw new Error(
+            `Error al insertar evaluadores: ${insertError.message}. ` +
+            `Verifica que todos los IDs de empleados sean válidos.`
+          )
         }
       }
 
       return { success: true }
     } catch (error) {
-      console.error('Error updating evaluation:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error desconocido',
@@ -415,7 +414,6 @@ export class EvaluationsService {
       .eq('evaluation_id', evaluationId)
 
     if (reviewersError) {
-      console.error('Error fetching reviewers:', reviewersError)
       return
     }
 
@@ -445,7 +443,7 @@ export class EvaluationsService {
       .eq('id', evaluationId)
 
     if (updateError) {
-      console.error('Error updating evaluation:', updateError)
+      // Silently handle error
     }
   }
 
@@ -502,7 +500,6 @@ export class EvaluationsService {
         .single()
 
       if (evalError || !evaluation) {
-        console.error('Error fetching evaluation detail:', evalError)
         return null
       }
 
@@ -621,7 +618,6 @@ export class EvaluationsService {
         evaluadores,
       }
     } catch (error) {
-      console.error('Error getting evaluation detail:', error)
       return null
     }
   }
@@ -639,7 +635,6 @@ export class EvaluationsService {
       .order('apellido', { ascending: true })
 
     if (error) {
-      console.error('Error fetching employees:', error)
       return []
     }
 
@@ -659,7 +654,6 @@ export class EvaluationsService {
       .order('start_date', { ascending: false })
 
     if (error) {
-      console.error('Error fetching cycles:', error)
       return []
     }
 
@@ -684,7 +678,6 @@ export class EvaluationsService {
         .single()
 
       if (evaluationError) {
-        console.error('Error creating evaluation:', evaluationError)
         return {
           success: false,
           error: `Error al crear la evaluación: ${evaluationError.message}`,
@@ -709,7 +702,6 @@ export class EvaluationsService {
         .insert(reviewersWithEvaluationId)
 
       if (reviewersError) {
-        console.error('Error creating reviewers:', reviewersError)
         // Intentar eliminar la evaluación creada
         await supabase.from('evaluations').delete().eq('id', evaluation.id)
         return {
@@ -723,7 +715,6 @@ export class EvaluationsService {
         evaluationId: evaluation.id,
       }
     } catch (error) {
-      console.error('Unexpected error creating evaluation:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error inesperado',

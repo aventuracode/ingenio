@@ -97,7 +97,7 @@ export default async function EvaluationDetailPage({
             </p>
           </div>
         </div>
-        {evaluation.estado !== 'completed' && (
+        {evaluation.progreso.completados === 0 && (
           <Link
             href={`/dashboard/evaluaciones/${id}/edit`}
             className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
@@ -170,7 +170,7 @@ export default async function EvaluationDetailPage({
                   <span
                     className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getEvaluationStatusStyle(evaluation.estado)}`}
                   >
-                    {evaluation.estado}
+                    {evaluation.progreso.porcentaje === 100 ? 'Completada' : 'Pendiente'  }
                   </span>
                 </div>
               </div>
@@ -362,7 +362,7 @@ export default async function EvaluationDetailPage({
                 const colors = getReviewerTypeColors(evaluador.tipo)
                 return (
                   <tr
-                    key={evaluador.id}
+                    key={evaluador.reviewerId}
                     className="transition-colors hover:bg-gray-50"
                   >
                     {/* NOMBRE */}

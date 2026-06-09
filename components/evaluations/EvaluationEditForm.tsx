@@ -178,7 +178,6 @@ export default function EvaluationEditForm({
         router.refresh()
       }, 1500)
     } catch (err) {
-      console.error('Error updating evaluation:', err)
       setError(
         err instanceof Error
           ? err.message
@@ -197,7 +196,7 @@ export default function EvaluationEditForm({
   )
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6 eeddiitt">
       {/* INFORMACIÓN DE LA EVALUACIÓN (SOLO LECTURA) */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center gap-3">
@@ -324,7 +323,7 @@ export default function EvaluationEditForm({
             disabled={loading || !selectedReviewerEmployeeId}
             className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 editunificado" />
             Agregar Evaluador
           </button>
         </div>

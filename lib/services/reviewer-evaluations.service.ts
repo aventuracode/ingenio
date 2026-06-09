@@ -87,7 +87,6 @@ export class ReviewerEvaluationsService {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching my evaluations:', error)
       return []
     }
 
@@ -205,7 +204,6 @@ export class ReviewerEvaluationsService {
       .single()
 
     if (reviewerError || !reviewerData) {
-      console.error('Error fetching reviewer evaluation:', reviewerError)
       return null
     }
 
@@ -217,7 +215,6 @@ export class ReviewerEvaluationsService {
       .order('category', { ascending: true })
 
     if (questionsError || !questions) {
-      console.error('Error fetching questions:', questionsError)
       return null
     }
 
@@ -320,7 +317,6 @@ export class ReviewerEvaluationsService {
         .insert(answersToInsert)
 
       if (insertError) {
-        console.error('Error inserting answers:', insertError)
         return {
           success: false,
           error: `Error al guardar respuestas: ${insertError.message}`,
@@ -329,7 +325,6 @@ export class ReviewerEvaluationsService {
 
       return { success: true }
     } catch (error) {
-      console.error('Unexpected error submitting answers:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error inesperado',
@@ -355,7 +350,6 @@ export class ReviewerEvaluationsService {
         .eq('reviewer_employee_id', reviewerEmployeeId)
 
       if (updateError) {
-        console.error('Error completing reviewer:', updateError)
         return {
           success: false,
           error: `Error al completar evaluación: ${updateError.message}`,
@@ -382,7 +376,6 @@ export class ReviewerEvaluationsService {
 
       return { success: true }
     } catch (error) {
-      console.error('Unexpected error completing evaluation:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error inesperado',
