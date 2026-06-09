@@ -57,6 +57,72 @@ npm run lint         # Linter
 
 ---
 
+## 🚀 Despliegue en Vercel
+
+### Requisitos previos
+
+- Cuenta en [Vercel](https://vercel.com)
+- Cuenta en [Supabase](https://supabase.com) con la base de datos configurada
+- Variables de entorno listas (ver `.env.example`)
+
+### 1. Conectar repositorio
+
+- Ve a [vercel.com](https://vercel.com) e inicia sesión
+- Click en "Add New Project"
+- Importa tu repositorio de GitHub/GitLab/Bitbucket
+- Selecciona el framework preset: **Next.js**
+
+### 2. Configurar variables de entorno
+
+En el dashboard de Vercel, ve a **Settings → Environment Variables** y agrega:
+
+| Variable | Descripción | Tipo |
+|----------|-------------|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL de tu proyecto Supabase | Production, Preview, Development |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon key de Supabase | Production, Preview, Development |
+
+> Obtén estos valores desde [Supabase Dashboard](https://app.supabase.com) → Project Settings → API
+
+### 3. Verificar configuración de build
+
+El proyecto ya está configurado con:
+
+- `output: 'standalone'` en `next.config.ts` para optimizar el despliegue
+- `eslint.ignoreDuringBuilds: true` para evitar fallos por warnings de lint
+- `.env.example` con las variables requeridas
+
+### 4. Configurar dominio de imágenes (ya incluido)
+
+El `next.config.ts` ya incluye los patrones de imágenes remotas:
+
+```typescript
+images: {
+  remotePatterns: [
+    { protocol: 'https', hostname: 'i.pravatar.cc' },
+    { protocol: 'https', hostname: '*.supabase.co' },
+  ],
+}
+```
+
+### 5. Desplegar
+
+```bash
+# Opción A: Desde Vercel Dashboard
+# Click en "Deploy"
+
+# Opción B: Desde CLI
+npm i -g vercel
+vercel --prod
+```
+
+### Post-despliegue
+
+1. **Verificar Supabase RLS Policies**: Asegúrate de que las políticas RLS estén aplicadas en Supabase
+2. **Crear usuario admin**: Registra el primer usuario y asígnale el rol `admin` directamente en Supabase
+3. **Configurar ciclos de evaluación**: Crea al menos un ciclo de evaluación activo desde el dashboard
+
+---
+
 ## 📁 Estructura Principal
 
 ```
