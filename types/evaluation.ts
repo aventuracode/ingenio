@@ -163,24 +163,6 @@ export interface CreateReviewerPayload {
 // TIPOS PARA DETALLE DE EVALUACIÓN
 // ============================================
 
-export interface ReviewerWithStatus {
-  id: string
-  nombre: string
-  apellido: string
-  puesto: string
-  avatar: string | null
-  tipo: string
-  tipoLabel: string
-  completado: boolean
-  fechaRespuesta: string | null
-}
-
-export interface CategoryScore {
-  category: string
-  averageScore: number
-  totalResponses: number
-}
-
 export interface EvaluationBasicData {
   id: string
   empleado: {
@@ -224,38 +206,6 @@ export interface EvaluationBasicData {
       totalRespuestas: number
     }>
   }
-}
-
-export interface EvaluationDetailData {
-  id: string
-  empleado: {
-    id: string
-    nombre: string
-    apellido: string
-    puesto: string
-    avatar: string | null
-  }
-  ciclo: {
-    id: string
-    nombre: string
-    descripcion: string
-    fechaInicio: string
-    fechaFin: string
-  }
-  estado: string
-  estadoRaw: string
-  fechaCreacion: string
-  progreso: {
-    completados: number
-    total: number
-    porcentaje: number
-  }
-  resultados: {
-    promedioGeneral: number | null
-    totalRespuestas: number
-    scoresPorCategoria: CategoryScore[]
-  }
-  evaluadores: ReviewerWithStatus[]
 }
 
 // ============================================
@@ -327,17 +277,6 @@ export function transformEvaluationForUI(
   // CALCULAR ESTADO DERIVADO (NO usar evaluation.status directamente)
   const derivedStatus = deriveEvaluationStatus(completedReviewers, totalReviewers)
 
-  // Calcular puntaje promedio de reviewers completados
-  const reviewersWithScores = evaluation.reviewers.filter(r => r.completed)
-  let averageScore: number | null = null
-  
-  if (reviewersWithScores.length > 0) {
-    // Obtener todas las respuestas de estos reviewers
-    const allScores: number[] = []
-    // Nota: Necesitarás incluir las answers en el query
-    // Por ahora retornamos null hasta que tengamos las answers
-  }
-
   return {
     id: evaluation.id,
     empleado: {
@@ -358,7 +297,7 @@ export function transformEvaluationForUI(
       total: totalReviewers,
       porcentaje: calculateProgress(completedReviewers, totalReviewers),
     },
-    puntaje: averageScore,
+    puntaje: null,
     fecha: evaluation.created_at || new Date().toISOString(),
   }
 }

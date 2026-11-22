@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { MAX_COMMENT_LENGTH } from '@/lib/utils/evaluation-math'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // ============================================
@@ -40,8 +41,13 @@ export class EvaluationCommentsService {
   ): Promise<{ success: boolean; error?: string }> {
     try {
       // Validar longitud del comentario
-      if (payload.general_comment && payload.general_comment.length > 2000) {
-        throw new Error('El comentario no puede exceder los 2000 caracteres')
+      if (
+        payload.general_comment &&
+        payload.general_comment.length > MAX_COMMENT_LENGTH
+      ) {
+        throw new Error(
+          `El comentario no puede exceder los ${MAX_COMMENT_LENGTH} caracteres`
+        )
       }
 
       // Verificar que el reviewer esté asignado a esta evaluación
@@ -195,37 +201,32 @@ export class EvaluationCommentsService {
 
     try {
       // Obtener comentarios de evaluaciones donde el empleado es el evaluado
+      // !inner permite filtrar por la tabla relacionada server-side
       const { data, error } = await supabase
         .from('evaluation_general_comments')
         .select(
           `
           comment,
           created_at,
-          evaluation:evaluations!evaluation_general_comments_evaluation_id_fkey (
+          evaluation:evaluations!inner (
             employee_id
           )
         `
         )
+        .eq('evaluation.employee_id', employeeId)
+        .not('comment', 'is', null)
         .order('created_at', { ascending: false })
 
       if (error) {
         throw new Error(error.message)
       }
 
-      if (!data) {
-        return []
-      }
-
-      // Filtrar solo comentarios de evaluaciones del empleado
-      const employeeComments = data
-        .filter((item: any) => item.evaluation?.employee_id === employeeId)
-        .filter((item: any) => item.comment && item.comment.trim())
-        .map((item: any) => ({
+      return (data || [])
+        .filter((item) => item.comment && item.comment.trim())
+        .map((item) => ({
           comment: item.comment,
           date: item.created_at,
         }))
-
-      return employeeComments
     } catch (error) {
       throw new Error(
         error instanceof Error ? error.message : 'Error al obtener comentarios'

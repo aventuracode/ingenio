@@ -12,6 +12,7 @@ import {
 import type { EvaluationDetailForReviewer } from '@/types/reviewer-evaluation'
 import QuestionCard from './QuestionCard'
 import { createClient } from '@/lib/supabase/client'
+import { MAX_COMMENT_LENGTH } from '@/lib/utils/evaluation-math'
 import ConfirmModal from '@/components/ui/ConfirmModal'
 import FormAlert from '@/components/ui/FormAlert'
 
@@ -100,9 +101,9 @@ export default function EvaluationAnswerForm({
     }
 
     // Validar longitud del comentario general
-    if (generalComment.length > 2000) {
+    if (generalComment.length > MAX_COMMENT_LENGTH) {
       setError(
-        `El comentario general no puede exceder los 2000 caracteres (actualmente: ${generalComment.length})`
+        `El comentario general no puede exceder los ${MAX_COMMENT_LENGTH} caracteres (actualmente: ${generalComment.length})`
       )
       return false
     }
@@ -183,8 +184,10 @@ export default function EvaluationAnswerForm({
       // Guardar comentario general si existe
       if (generalComment.trim()) {
         // Validar longitud del comentario
-        if (generalComment.length > 2000) {
-          throw new Error('El comentario no puede exceder los 2000 caracteres')
+        if (generalComment.length > MAX_COMMENT_LENGTH) {
+          throw new Error(
+            `El comentario no puede exceder los ${MAX_COMMENT_LENGTH} caracteres`
+          )
         }
 
         // Verificar que el reviewer esté asignado a esta evaluación
@@ -385,7 +388,7 @@ export default function EvaluationAnswerForm({
             onChange={(e) => setGeneralComment(e.target.value)}
             placeholder="Ingrese observaciones generales sobre el desempeño del colaborador..."
             className={`w-full rounded-lg border px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition-colors focus:outline-none focus:ring-2 disabled:bg-gray-50 disabled:text-gray-500 ${
-              generalComment.length > 2000
+              generalComment.length > MAX_COMMENT_LENGTH
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                 : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
             }`}
@@ -393,18 +396,18 @@ export default function EvaluationAnswerForm({
           />
           <div className="mt-2 flex items-center justify-between">
             <span className="text-xs text-gray-600">
-              Máximo 2000 caracteres
+              Máximo {MAX_COMMENT_LENGTH} caracteres
             </span>
             <span
               className={`text-xs font-medium ${
-                generalComment.length > 2000
+                generalComment.length > MAX_COMMENT_LENGTH
                   ? 'text-red-600'
-                  : generalComment.length > 1800
+                  : generalComment.length > MAX_COMMENT_LENGTH * 0.9
                     ? 'text-amber-600'
                     : 'text-gray-500'
               }`}
             >
-              {generalComment.length} / 2000
+              {generalComment.length} / {MAX_COMMENT_LENGTH}
             </span>
           </div>
         </div>

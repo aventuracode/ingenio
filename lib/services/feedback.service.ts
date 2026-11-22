@@ -1,4 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+import {
+  groupScoresByCategory,
+  computeTrend,
+  FEEDBACK_THRESHOLDS,
+} from '@/lib/utils/evaluation-math'
 import type {
   EmployeeFeedbackDTO,
   EmployeeFeedbackStatsDTO,
@@ -123,30 +128,11 @@ export class FeedbackService {
       answers.reduce((sum, a) => sum + a.score, 0) / answers.length
 
     // Agrupar por categoría
-    const categoryMap = new Map<
-      string,
-      { scores: number[]; count: number }
-    >()
-
-    answers.forEach((answer: any) => {
-      const category = answer.question?.category || 'General'
-      const existing = categoryMap.get(category) || {
-        scores: [],
-        count: 0,
-      }
-      existing.scores.push(answer.score)
-      existing.count++
-      categoryMap.set(category, existing)
-    })
-
-    const scoresByCategory = Array.from(categoryMap.entries()).map(
-      ([category, data]) => ({
-        category,
-        averageScore:
-          data.scores.reduce((sum, s) => sum + s, 0) / data.count,
-        count: data.count,
-      })
-    )
+    const scoresByCategory = groupScoresByCategory(answers).map((cat) => ({
+      category: cat.category,
+      averageScore: cat.averageScore,
+      count: cat.totalResponses,
+    }))
 
     // Feedback reciente (últimos 5)
     const recentFeedback: EmployeeFeedbackDTO[] = answers
@@ -159,40 +145,17 @@ export class FeedbackService {
         createdAt: answer.created_at,
       }))
 
-    // Identificar fortalezas (categorías con score > 4)
+    // Identificar fortalezas y oportunidades de mejora
     const strengths = scoresByCategory
-      .filter((cat) => cat.averageScore > 4)
+      .filter((cat) => cat.averageScore > FEEDBACK_THRESHOLDS.STRENGTH)
       .map((cat) => cat.category)
 
-    // Identificar oportunidades de mejora (categorías con score < 3)
     const improvements = scoresByCategory
-      .filter((cat) => cat.averageScore < 3)
+      .filter((cat) => cat.averageScore < FEEDBACK_THRESHOLDS.IMPROVEMENT)
       .map((cat) => cat.category)
 
-    // Calcular tendencia (comparar últimos 30 días vs anteriores)
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-
-    const recentAnswers = answers.filter(
-      (a) => new Date(a.created_at) >= thirtyDaysAgo
-    )
-    const olderAnswers = answers.filter(
-      (a) => new Date(a.created_at) < thirtyDaysAgo
-    )
-
-    let trend: 'up' | 'down' | 'stable' = 'stable'
-
-    if (recentAnswers.length > 0 && olderAnswers.length > 0) {
-      const recentAvg =
-        recentAnswers.reduce((sum, a) => sum + a.score, 0) /
-        recentAnswers.length
-      const olderAvg =
-        olderAnswers.reduce((sum, a) => sum + a.score, 0) /
-        olderAnswers.length
-
-      if (recentAvg > olderAvg + 0.2) trend = 'up'
-      else if (recentAvg < olderAvg - 0.2) trend = 'down'
-    }
+    // Calcular tendencia (últimos 30 días vs anteriores)
+    const trend = computeTrend(answers)
 
     return {
       averageScore: Math.round(averageScore * 10) / 10,

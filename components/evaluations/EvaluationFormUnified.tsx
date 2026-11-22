@@ -19,6 +19,11 @@ import type {
   EvaluationBasicData,
 } from '@/types/evaluation'
 import { createClient } from '@/lib/supabase/client'
+import {
+  REVIEWER_TYPE_LABELS,
+  getReviewerTypeLabel,
+  getReviewerTypeColors,
+} from '@/lib/constants/reviewer-types'
 import Avatar from '@/components/ui/Avatar'
 import FormAlert from '@/components/ui/FormAlert'
 import FormSection from '@/components/ui/FormSection'
@@ -38,12 +43,7 @@ interface EvaluationFormUnifiedProps {
 // TIPOS DE REVIEWER
 // ============================================
 
-const REVIEWER_TYPES = [
-  { value: 'self', label: 'Autoevaluación', color: 'bg-purple-100 text-purple-700' },
-  { value: 'manager', label: 'Supervisor', color: 'bg-blue-100 text-blue-700' },
-  { value: 'peer', label: 'Par/Colega', color: 'bg-green-100 text-green-700' },
-  { value: 'subordinate', label: 'Subordinado', color: 'bg-amber-100 text-amber-700' },
-] as const
+const REVIEWER_TYPES = Object.keys(REVIEWER_TYPE_LABELS)
 
 // ============================================
 // COMPONENTE PRINCIPAL
@@ -376,8 +376,8 @@ export default function EvaluationFormUnified({
                 disabled={loading}
               >
                 {REVIEWER_TYPES.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
+                  <option key={type} value={type}>
+                    {getReviewerTypeLabel(type)}
                   </option>
                 ))}
               </select>
@@ -406,9 +406,7 @@ export default function EvaluationFormUnified({
         ) : (
           <div className="space-y-3">
             {reviewers.map((reviewer, index) => {
-              const typeInfo = REVIEWER_TYPES.find(
-                (t) => t.value === reviewer.reviewerType
-              )
+              const typeColors = getReviewerTypeColors(reviewer.reviewerType)
               return (
                 <div
                   key={`${reviewer.employee.id}-${reviewer.reviewerType}-${index}`}
@@ -429,9 +427,9 @@ export default function EvaluationFormUnified({
                       </div>
                     </div>
                     <span
-                      className={`ml-4 rounded-full px-3 py-1 text-xs font-semibold ${typeInfo?.color}`}
+                      className={`ml-4 rounded-full px-3 py-1 text-xs font-semibold ${typeColors.bg} ${typeColors.text}`}
                     >
-                      {typeInfo?.label}
+                      {getReviewerTypeLabel(reviewer.reviewerType)}
                     </span>
                   </div>
                   <button
