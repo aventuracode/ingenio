@@ -15,6 +15,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { EvaluationsService } from '@/lib/services/evaluations.service'
+import { formatDate } from '@/lib/utils/date'
 import { getEvaluationStatusStyle } from '@/types/evaluation'
 
 // ============================================
@@ -267,11 +268,7 @@ export default async function EvaluacionesPage() {
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Calendar className="h-4 w-4 text-gray-400" />
-                      {new Date(evaluation.fecha).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
+                      {formatDate(evaluation.fecha)}
                     </div>
                   </td>
 

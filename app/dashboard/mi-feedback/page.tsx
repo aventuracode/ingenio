@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/server'
 import { FeedbackService } from '@/lib/services/feedback.service'
 import { EvaluationCommentsService } from '@/lib/services/evaluation-comments.service'
 import { isValidRole } from '@/lib/auth/roles'
+import { formatDate } from '@/lib/utils/date'
 
 // ============================================
 // PÁGINA: MI FEEDBACK (EMPLOYEE)
@@ -344,7 +345,7 @@ export default async function MiFeedbackPage() {
                   <p className="text-sm text-gray-700">{feedback.comment}</p>
                 )}
                 <p className="mt-2 text-xs text-gray-500">
-                  {new Date(feedback.createdAt).toLocaleDateString('es-ES', {
+                  {formatDate(feedback.createdAt, {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
@@ -407,7 +408,7 @@ export default async function MiFeedbackPage() {
                     </span>
                   </div>
                   <span className="text-xs text-gray-500">
-                    {new Date(comment.date).toLocaleDateString('es-ES', {
+                    {formatDate(comment.date, {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Calendar, ClipboardCheck, ArrowRight, CheckCircle2, Clock } from 'lucide-react'
 import type { MyEvaluationListItem } from '@/types/reviewer-evaluation'
 import { getReviewerTypeColors } from '@/lib/constants/reviewer-types'
+import { formatDate } from '@/lib/utils/date'
 
 // ============================================
 // COMPONENT: PENDING EVALUATIONS TABLE
@@ -17,13 +18,7 @@ interface PendingEvaluationsTableProps {
 export default function PendingEvaluationsTable({
   evaluations,
 }: PendingEvaluationsTableProps) {
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
-  }
+
 
   const getStatusBadge = (status: string, statusLabel: string) => {
     const colors = {

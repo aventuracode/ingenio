@@ -17,6 +17,7 @@ import {
 import type { EvaluationCycleListItem } from '@/types/evaluation-cycle'
 import CycleStatusBadge from './CycleStatusBadge'
 import { createClient } from '@/lib/supabase/client'
+import { formatDate } from '@/lib/utils/date'
 
 // ============================================
 // COMPONENT: CYCLE TABLE
@@ -142,15 +143,6 @@ export default function CycleTable({ cycles }: CycleTableProps) {
       setLoading(null)
       setOpenMenuId(null)
     }
-  }
-
-  const formatDate = (date: string | null) => {
-    if (!date) return '-'
-    return new Date(date).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    })
   }
 
   if (cycles.length === 0) {

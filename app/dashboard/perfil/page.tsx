@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { User, Mail, Briefcase, Calendar, Shield, Camera } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import { formatDate, formatDateTime } from '@/lib/utils/date'
 
 // ============================================
 // PÁGINA: MI PERFIL
@@ -175,14 +176,11 @@ return (
                     Fecha de Ingreso
                   </p>
                   <p className="mt-1 text-sm text-gray-900">
-                    {new Date(employee.fecha_ingreso).toLocaleDateString(
-                      'es-ES',
-                      {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      }
-                    )}
+                    {formatDate(employee.fecha_ingreso, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
                   </p>
                 </div>
               </div>
@@ -232,7 +230,7 @@ return (
               </p>
               <p className="mt-1 text-sm text-gray-900">
                 {user.last_sign_in_at
-                  ? new Date(user.last_sign_in_at).toLocaleString('es-ES')
+                  ? formatDateTime(user.last_sign_in_at)
                   : 'No disponible'}
               </p>
             </div>
@@ -242,7 +240,7 @@ return (
                 Cuenta creada
               </p>
               <p className="mt-1 text-sm text-gray-900">
-                {new Date(user.created_at).toLocaleDateString('es-ES', {
+                {formatDate(user.created_at, {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',

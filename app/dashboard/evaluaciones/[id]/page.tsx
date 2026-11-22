@@ -20,6 +20,7 @@ import { isValidRole } from '@/lib/auth/roles'
 import { getEvaluationStatusStyle } from '@/types/evaluation'
 import { getReviewerTypeColors } from '@/lib/constants/reviewer-types'
 import { EvaluationCommentsService } from '@/lib/services/evaluation-comments.service'
+import { formatDate } from '@/lib/utils/date'
 import EvaluationCommentsSection from '@/components/evaluations/EvaluationCommentsSection'
 
 // ============================================
@@ -181,14 +182,11 @@ export default async function EvaluationDetailPage({
                 <div>
                   <div className="text-xs text-gray-500">Fecha de creación</div>
                   <div className="text-sm font-semibold text-gray-900">
-                    {new Date(evaluation.fechaCreacion).toLocaleDateString(
-                      'es-ES',
-                      {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      }
-                    )}
+                    {formatDate(evaluation.fechaCreacion, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
                   </div>
                 </div>
               </div>
@@ -421,14 +419,11 @@ export default async function EvaluationDetailPage({
                     {/* FECHA DE RESPUESTA */}
                     <td className="px-4 py-4 text-sm text-gray-600">
                       {evaluador.fechaRespuesta
-                        ? new Date(evaluador.fechaRespuesta).toLocaleDateString(
-                            'es-ES',
-                            {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            }
-                          )
+                        ? formatDate(evaluador.fechaRespuesta, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })
                         : '-'}
                     </td>
                   </tr>

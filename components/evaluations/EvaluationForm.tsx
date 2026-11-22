@@ -22,6 +22,7 @@ import type {
   CreateReviewerPayload,
 } from '@/types/evaluation'
 import { createClient } from '@/lib/supabase/client'
+import { formatDate } from '@/lib/utils/date'
 
 // ============================================
 // PROPS DEL COMPONENTE
@@ -335,8 +336,8 @@ export default function EvaluationForm({ employees, cycles }: EvaluationFormProp
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="h-4 w-4" />
                   <span>
-                    {new Date(selectedCycle.start_date).toLocaleDateString('es-ES')} -{' '}
-                    {new Date(selectedCycle.end_date).toLocaleDateString('es-ES')}
+                    {formatDate(selectedCycle.start_date)} -{' '}
+                    {formatDate(selectedCycle.end_date)}
                   </span>
                 </div>
               )}

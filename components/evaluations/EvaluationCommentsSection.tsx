@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import { MessageSquare } from 'lucide-react'
+import { formatDate } from '@/lib/utils/date'
 
 // ============================================
 // TYPES
@@ -91,7 +92,7 @@ export default function EvaluationCommentsSection({
                       </div>
                     </div>
                     <div className="flex-shrink-0 text-sm text-gray-500">
-                      {new Date(comment.date).toLocaleDateString('es-ES', {
+                      {formatDate(comment.date, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric',
