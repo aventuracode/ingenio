@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import FormAlert from "@/components/ui/FormAlert";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -77,11 +78,7 @@ export default function RegisterPage() {
             <p className="mt-2 text-sm text-gray-600">Crea tu cuenta</p>
           </div>
 
-          {error && (
-            <div className="mb-4 rounded-lg bg-red-50 p-4 border border-red-200">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-          )}
+          {error && <div className="mb-4"><FormAlert variant="error" message={error} /></div>}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

@@ -6,7 +6,6 @@ import {
   Calendar,
   Loader2,
   CheckCircle2,
-  XCircle,
   AlertCircle,
   FileText,
 } from 'lucide-react'
@@ -17,6 +16,8 @@ import type {
 } from '@/types/evaluation-cycle'
 import { CYCLE_STATUS_OPTIONS } from '@/lib/constants/evaluation-cycle-status'
 import { createClient } from '@/lib/supabase/client'
+import FormAlert from '@/components/ui/FormAlert'
+import FormSection from '@/components/ui/FormSection'
 
 // ============================================
 // COMPONENT: CYCLE FORM
@@ -148,40 +149,26 @@ export default function CycleForm({ cycle, mode }: CycleFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* MENSAJES DE ERROR/SUCCESS */}
-      {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
-          <XCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
-          <p className="text-sm font-medium text-red-800">{error}</p>
-        </div>
-      )}
+      {error && <FormAlert variant="error" message={error} />}
 
       {success && (
-        <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
-          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600" />
-          <p className="text-sm font-medium text-green-800">
-            {mode === 'create'
+        <FormAlert
+          variant="success"
+          message={`${
+            mode === 'create'
               ? '¡Ciclo creado exitosamente!'
-              : '¡Ciclo actualizado exitosamente!'}{' '}
-            Redirigiendo...
-          </p>
-        </div>
+              : '¡Ciclo actualizado exitosamente!'
+          } Redirigiendo...`}
+        />
       )}
 
       {/* INFORMACIÓN BÁSICA */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="rounded-lg bg-blue-100 p-2">
-            <FileText className="h-5 w-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Información Básica
-            </h3>
-            <p className="text-sm text-gray-600">
-              Datos generales del ciclo de evaluación
-            </p>
-          </div>
-        </div>
+      <FormSection
+        icon={FileText}
+        iconColor="blue"
+        title="Información Básica"
+        description="Datos generales del ciclo de evaluación"
+      >
 
         <div className="space-y-4">
           {/* TÍTULO */}
@@ -254,23 +241,15 @@ export default function CycleForm({ cycle, mode }: CycleFormProps) {
             </p>
           </div>
         </div>
-      </div>
+      </FormSection>
 
       {/* PERÍODO */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="rounded-lg bg-purple-100 p-2">
-            <Calendar className="h-5 w-5 text-purple-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Período de Evaluación
-            </h3>
-            <p className="text-sm text-gray-600">
-              Define las fechas de inicio y fin del ciclo
-            </p>
-          </div>
-        </div>
+      <FormSection
+        icon={Calendar}
+        iconColor="purple"
+        title="Período de Evaluación"
+        description="Define las fechas de inicio y fin del ciclo"
+      >
 
         <div className="grid gap-4 sm:grid-cols-2">
           {/* FECHA INICIO */}
@@ -311,7 +290,7 @@ export default function CycleForm({ cycle, mode }: CycleFormProps) {
             />
           </div>
         </div>
-      </div>
+      </FormSection>
 
       {/* BOTONES DE ACCIÓN */}
       <div className="flex items-center justify-end gap-3">

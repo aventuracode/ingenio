@@ -2,14 +2,10 @@
 
 import { useState, useEffect, FormEvent, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import {
   User,
-  Calendar,
   Users,
   Loader2,
-  CheckCircle2,
-  XCircle,
   Plus,
   Trash2,
   Save,
@@ -23,6 +19,9 @@ import type {
   EvaluationBasicData,
 } from '@/types/evaluation'
 import { createClient } from '@/lib/supabase/client'
+import Avatar from '@/components/ui/Avatar'
+import FormAlert from '@/components/ui/FormAlert'
+import FormSection from '@/components/ui/FormSection'
 
 // ============================================
 // PROPS DEL COMPONENTE
@@ -289,15 +288,7 @@ export default function EvaluationFormUnified({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* INFORMACIÓN DE LA EVALUACIÓN */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="rounded-lg bg-blue-100 p-2">
-            <User className="h-5 w-5 text-blue-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            Información de la Evaluación
-          </h3>
-        </div>
+      <FormSection icon={User} iconColor="blue" title="Información de la Evaluación">
 
         <div className="space-y-4">
           {/* EMPLEADO EVALUADO */}
@@ -345,18 +336,10 @@ export default function EvaluationFormUnified({
             </select>
           </div>
         </div>
-      </div>
+      </FormSection>
 
       {/* EVALUADORES */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="rounded-lg bg-green-100 p-2">
-            <Users className="h-5 w-5 text-green-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            Evaluadores Asignados
-          </h3>
-        </div>
+      <FormSection icon={Users} iconColor="green" title="Evaluadores Asignados">
 
         {/* AGREGAR EVALUADOR */}
         <div className="mb-6 space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -432,21 +415,11 @@ export default function EvaluationFormUnified({
                   className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:bg-gray-50"
                 >
                   <div className="flex items-center gap-3">
-                    {reviewer.employee.avatar_url ? (
-                      <div className="relative h-10 w-10 overflow-hidden rounded-full">
-                        <Image
-                          src={reviewer.employee.avatar_url}
-                          alt={`${reviewer.employee.nombre} ${reviewer.employee.apellido}`}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-bold text-white">
-                        {reviewer.employee.nombre.charAt(0)}
-                        {reviewer.employee.apellido.charAt(0)}
-                      </div>
-                    )}
+                    <Avatar
+                      nombre={reviewer.employee.nombre}
+                      apellido={reviewer.employee.apellido}
+                      src={reviewer.employee.avatar_url}
+                    />
                     <div>
                       <div className="font-semibold text-gray-900">
                         {reviewer.employee.nombre} {reviewer.employee.apellido}
@@ -475,32 +448,21 @@ export default function EvaluationFormUnified({
             })}
           </div>
         )}
-      </div>
+      </FormSection>
 
       {/* MENSAJES */}
-      {error && (
-        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-          <XCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
-          <div className="flex-1">
-            <h4 className="font-semibold text-red-900">Error</h4>
-            <p className="mt-1 text-sm text-red-700">{error}</p>
-          </div>
-        </div>
-      )}
+      {error && <FormAlert variant="error" title="Error" message={error} />}
 
       {success && (
-        <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
-          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600" />
-          <div className="flex-1">
-            <h4 className="font-semibold text-green-900">¡Éxito!</h4>
-            <p className="mt-1 text-sm text-green-700">
-              {isEditMode
-                ? 'La evaluación se actualizó correctamente.'
-                : 'La evaluación se creó correctamente.'}{' '}
-              Redirigiendo...
-            </p>
-          </div>
-        </div>
+        <FormAlert
+          variant="success"
+          title="¡Éxito!"
+          message={`${
+            isEditMode
+              ? 'La evaluación se actualizó correctamente.'
+              : 'La evaluación se creó correctamente.'
+          } Redirigiendo...`}
+        />
       )}
 
       {/* BOTONES */}

@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { Calendar, ClipboardCheck, ArrowRight, CheckCircle2, Clock } from 'lucide-react'
 import type { MyEvaluationListItem } from '@/types/reviewer-evaluation'
 import { getReviewerTypeColors } from '@/lib/constants/reviewer-types'
 import { formatDate } from '@/lib/utils/date'
+import Avatar from '@/components/ui/Avatar'
+import EmptyState from '@/components/ui/EmptyState'
 
 // ============================================
 // COMPONENT: PENDING EVALUATIONS TABLE
@@ -49,17 +50,11 @@ export default function PendingEvaluationsTable({
 
   if (evaluations.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-          <ClipboardCheck className="h-8 w-8 text-gray-400" />
-        </div>
-        <h3 className="mb-2 text-lg font-semibold text-gray-900">
-          No tienes evaluaciones asignadas
-        </h3>
-        <p className="text-sm text-gray-600">
-          Cuando se te asignen evaluaciones, aparecerán aquí.
-        </p>
-      </div>
+      <EmptyState
+        icon={ClipboardCheck}
+        title="No tienes evaluaciones asignadas"
+        description="Cuando se te asignen evaluaciones, aparecerán aquí."
+      />
     )
   }
 
@@ -104,21 +99,12 @@ export default function PendingEvaluationsTable({
                   {/* EMPLEADO */}
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center gap-3">
-                      {evaluation.employeeAvatar ? (
-                        <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100">
-                          <Image
-                            src={evaluation.employeeAvatar}
-                            alt={`${evaluation.employeeName} ${evaluation.employeeLastName}`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ring-2 ring-gray-100">
-                          {evaluation.employeeName.charAt(0)}
-                          {evaluation.employeeLastName.charAt(0)}
-                        </div>
-                      )}
+                      <Avatar
+                        nombre={evaluation.employeeName}
+                        apellido={evaluation.employeeLastName}
+                        src={evaluation.employeeAvatar}
+                        ring
+                      />
                       <div>
                         <div className="font-semibold text-gray-900">
                           {evaluation.employeeName} {evaluation.employeeLastName}

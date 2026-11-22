@@ -15,6 +15,8 @@ import { FeedbackService } from '@/lib/services/feedback.service'
 import { EvaluationCommentsService } from '@/lib/services/evaluation-comments.service'
 import { isValidRole } from '@/lib/auth/roles'
 import { formatDate } from '@/lib/utils/date'
+import PageHeader from '@/components/ui/PageHeader'
+import EmptyState from '@/components/ui/EmptyState'
 
 // ============================================
 // PÁGINA: MI FEEDBACK (EMPLOYEE)
@@ -68,24 +70,16 @@ export default async function MiFeedbackPage() {
   if (!stats) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Mi Feedback</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Visualiza tu feedback de evaluaciones 360°
-          </p>
-        </div>
+        <PageHeader
+          title="Mi Feedback"
+          description="Visualiza tu feedback de evaluaciones 360°"
+        />
 
-        <div className="rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-12">
-          <div className="text-center">
-            <MessageSquare className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-semibold text-gray-900">
-              Sin Feedback Disponible
-            </h3>
-            <p className="mt-2 text-sm text-gray-600">
-              Aún no tienes evaluaciones completadas.
-            </p>
-          </div>
-        </div>
+        <EmptyState
+          icon={MessageSquare}
+          title="Sin Feedback Disponible"
+          description="Aún no tienes evaluaciones completadas."
+        />
       </div>
     )
   }
@@ -113,12 +107,10 @@ export default async function MiFeedbackPage() {
   return (
     <div className="space-y-6">
       {/* HEADER */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Mi Feedback</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Visualiza tu feedback anónimo de evaluaciones 360°
-        </p>
-      </div>
+      <PageHeader
+        title="Mi Feedback"
+        description="Visualiza tu feedback anónimo de evaluaciones 360°"
+      />
 
       {/* STATS CARDS */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

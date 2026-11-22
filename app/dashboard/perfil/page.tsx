@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { User, Mail, Briefcase, Calendar, Shield, Camera } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatDate, formatDateTime } from '@/lib/utils/date'
+import PageHeader from '@/components/ui/PageHeader'
 
 // ============================================
 // PÁGINA: MI PERFIL
@@ -61,12 +62,10 @@ export default async function PerfilPage() {
 return (
     <div className="space-y-6">
       {/* HEADER */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Mi Perfil</h1>
-        <p className="mt-1 text-sm text-gray-600">
-          Información personal y configuración de cuenta
-        </p>
-      </div>
+      <PageHeader
+        title="Mi Perfil"
+        description="Información personal y configuración de cuenta"
+      />
 
       {/* PERFIL CARD */}
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">

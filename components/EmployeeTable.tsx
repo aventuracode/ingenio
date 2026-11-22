@@ -1,9 +1,8 @@
-'use client'
-
 import { Employee } from '@/types/employee'
 import { Users, Edit } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
+import Avatar from '@/components/ui/Avatar'
+import EmptyState from '@/components/ui/EmptyState'
 
 interface EmployeeTableProps {
   employees: Employee[]
@@ -12,17 +11,11 @@ interface EmployeeTableProps {
 export default function EmployeeTable({ employees }: EmployeeTableProps) {
   if (employees.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-12 shadow-sm">
-        <div className="flex flex-col items-center justify-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-            <Users className="h-8 w-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900">No hay empleados</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Comienza agregando tu primer empleado
-          </p>
-        </div>
-      </div>
+      <EmptyState
+        icon={Users}
+        title="No hay empleados"
+        description="Comienza agregando tu primer empleado"
+      />
     )
   }
 
@@ -75,22 +68,11 @@ export default function EmployeeTable({ employees }: EmployeeTableProps) {
               >
                 <td className="whitespace-nowrap px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="relative h-10 w-10 flex-shrink-0">
-                      {employee.avatar_url ? (
-                        <Image
-                          src={employee.avatar_url}
-                          alt={`${employee.nombre} ${employee.apellido}`}
-                          width={40}
-                          height={40}
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white">
-                          {employee.nombre.charAt(0)}
-                          {employee.apellido.charAt(0)}
-                        </div>
-                      )}
-                    </div>
+                    <Avatar
+                      nombre={employee.nombre}
+                      apellido={employee.apellido}
+                      src={employee.avatar_url}
+                    />
                     <div>
                       <div className="font-semibold text-gray-900">
                         {employee.nombre} {employee.apellido}

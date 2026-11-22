@@ -1,10 +1,11 @@
 import { ArrowLeft, User, Calendar, Briefcase } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { ReviewerEvaluationsService } from '@/lib/services/reviewer-evaluations.service'
 import EvaluationAnswerForm from '@/components/evaluations/EvaluationAnswerForm'
 import { getReviewerTypeColors } from '@/lib/constants/reviewer-types'
+import Avatar from '@/components/ui/Avatar'
+import FormSection from '@/components/ui/FormSection'
 
 // ============================================
 // PÁGINA: RESPONDER EVALUACIÓN - SERVER COMPONENT
@@ -65,40 +66,21 @@ export default async function RespondEvaluationPage({
       </div>
 
       {/* INFORMACIÓN DEL EMPLEADO EVALUADO */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="rounded-lg bg-blue-100 p-2">
-            <User className="h-5 w-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Empleado a Evaluar
-            </h3>
-            <p className="text-sm text-gray-600">
-              Información del empleado que estás evaluando
-            </p>
-          </div>
-        </div>
-
+      <FormSection
+        icon={User}
+        iconColor="blue"
+        title="Empleado a Evaluar"
+        description="Información del empleado que estás evaluando"
+      >
         <div className="flex items-start gap-6">
           {/* AVATAR */}
-          <div className="flex-shrink-0">
-            {evaluation.employeeAvatar ? (
-              <div className="relative h-20 w-20 overflow-hidden rounded-full ring-4 ring-gray-100">
-                <Image
-                  src={evaluation.employeeAvatar}
-                  alt={`${evaluation.employeeName} ${evaluation.employeeLastName}`}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white ring-4 ring-gray-100">
-                {evaluation.employeeName.charAt(0)}
-                {evaluation.employeeLastName.charAt(0)}
-              </div>
-            )}
-          </div>
+          <Avatar
+            nombre={evaluation.employeeName}
+            apellido={evaluation.employeeLastName}
+            src={evaluation.employeeAvatar}
+            size="xl"
+            ring
+          />
 
           {/* INFO */}
           <div className="flex-1 space-y-3">
@@ -142,7 +124,7 @@ export default async function RespondEvaluationPage({
             )}
           </div>
         </div>
-      </div>
+      </FormSection>
 
       {/* FORMULARIO DE RESPUESTAS */}
       <EvaluationAnswerForm

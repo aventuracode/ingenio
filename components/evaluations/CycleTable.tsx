@@ -12,12 +12,13 @@ import {
   Archive,
   Play,
   ClipboardCheck,
-  AlertCircle,
 } from 'lucide-react'
 import type { EvaluationCycleListItem } from '@/types/evaluation-cycle'
 import CycleStatusBadge from './CycleStatusBadge'
 import { createClient } from '@/lib/supabase/client'
 import { formatDate } from '@/lib/utils/date'
+import EmptyState from '@/components/ui/EmptyState'
+import FormAlert from '@/components/ui/FormAlert'
 
 // ============================================
 // COMPONENT: CYCLE TABLE
@@ -147,36 +148,27 @@ export default function CycleTable({ cycles }: CycleTableProps) {
 
   if (cycles.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-          <ClipboardCheck className="h-8 w-8 text-gray-400" />
-        </div>
-        <h3 className="mb-2 text-lg font-semibold text-gray-900">
-          No hay ciclos de evaluación
-        </h3>
-        <p className="mb-6 text-sm text-gray-600">
-          Comienza creando tu primer ciclo de evaluación.
-        </p>
-        <Link
-          href="/dashboard/evaluaciones/ciclos/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-        >
-          <Calendar className="h-4 w-4" />
-          Crear Ciclo
-        </Link>
-      </div>
+      <EmptyState
+        icon={ClipboardCheck}
+        title="No hay ciclos de evaluación"
+        description="Comienza creando tu primer ciclo de evaluación."
+        action={
+          <Link
+            href="/dashboard/evaluaciones/ciclos/new"
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            <Calendar className="h-4 w-4" />
+            Crear Ciclo
+          </Link>
+        }
+      />
     )
   }
 
   return (
     <div className="space-y-4">
       {/* ERROR MESSAGE */}
-      {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
-          <p className="text-sm font-medium text-red-800">{error}</p>
-        </div>
-      )}
+      {error && <FormAlert variant="error" message={error} />}
 
       {/* TABLE */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { StatsCard } from '@/components/ui/StatsCard'
 
 interface Props {
   employeeId: string
@@ -71,61 +72,31 @@ export default async function DashboardEmployee({ employeeId }: Props) {
       {/* STATS CARDS */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Mis Evaluaciones */}
-        <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">
-                Mis Evaluaciones
-              </p>
-              <p className="mt-2 text-3xl font-bold text-gray-900">
-                {totalEvaluations}
-              </p>
-              <p className="mt-1 text-xs text-gray-500">Total</p>
-            </div>
-            <div className="rounded-xl bg-blue-50 p-3">
-              <ClipboardCheck className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-          <div className="absolute bottom-0 left-0 h-1 w-full bg-blue-500 opacity-0 transition-opacity group-hover:opacity-100" />
-        </div>
+        <StatsCard
+          name="Mis Evaluaciones"
+          value={totalEvaluations.toString()}
+          description="Total"
+          icon={ClipboardCheck}
+          color="blue"
+        />
 
         {/* Pendientes como Reviewer */}
-        <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">
-                Pendientes de Evaluar
-              </p>
-              <p className="mt-2 text-3xl font-bold text-gray-900">
-                {pendingAsReviewer}
-              </p>
-              <p className="mt-1 text-xs text-gray-500">Por completar</p>
-            </div>
-            <div className="rounded-xl bg-amber-50 p-3">
-              <Clock className="h-6 w-6 text-amber-600" />
-            </div>
-          </div>
-          <div className="absolute bottom-0 left-0 h-1 w-full bg-amber-500 opacity-0 transition-opacity group-hover:opacity-100" />
-        </div>
+        <StatsCard
+          name="Pendientes de Evaluar"
+          value={pendingAsReviewer.toString()}
+          description="Por completar"
+          icon={Clock}
+          color="amber"
+        />
 
         {/* Completadas como Reviewer */}
-        <div className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600">
-                Evaluaciones Completadas
-              </p>
-              <p className="mt-2 text-3xl font-bold text-gray-900">
-                {completedAsReviewer}
-              </p>
-              <p className="mt-1 text-xs text-gray-500">Finalizadas</p>
-            </div>
-            <div className="rounded-xl bg-green-50 p-3">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-          <div className="absolute bottom-0 left-0 h-1 w-full bg-green-500 opacity-0 transition-opacity group-hover:opacity-100" />
-        </div>
+        <StatsCard
+          name="Evaluaciones Completadas"
+          value={completedAsReviewer.toString()}
+          description="Finalizadas"
+          icon={CheckCircle2}
+          color="green"
+        />
 
         {/* Mi Feedback */}
         <Link

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import {
   Loader2,
   CheckCircle2,
-  XCircle,
   Save,
   Send,
   AlertCircle,
@@ -14,6 +13,7 @@ import type { EvaluationDetailForReviewer } from '@/types/reviewer-evaluation'
 import QuestionCard from './QuestionCard'
 import { createClient } from '@/lib/supabase/client'
 import ConfirmModal from '@/components/ui/ConfirmModal'
+import FormAlert from '@/components/ui/FormAlert'
 
 // ============================================
 // COMPONENT: EVALUATION ANSWER FORM
@@ -289,22 +289,17 @@ export default function EvaluationAnswerForm({
 
       <form className="space-y-6">
       {/* MENSAJES DE ERROR/SUCCESS */}
-      {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
-          <XCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
-          <p className="text-sm font-medium text-red-800">{error}</p>
-        </div>
-      )}
+      {error && <FormAlert variant="error" message={error} />}
 
       {success && (
-        <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
-          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600" />
-          <p className="text-sm font-medium text-green-800">
-            {saveType === 'submit'
+        <FormAlert
+          variant="success"
+          message={
+            saveType === 'submit'
               ? '¡Evaluación enviada exitosamente! Redirigiendo...'
-              : '¡Borrador guardado exitosamente!'}
-          </p>
-        </div>
+              : '¡Borrador guardado exitosamente!'
+          }
+        />
       )}
 
       {/* PROGRESS BAR */}

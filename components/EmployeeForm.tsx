@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { EmployeeFormData } from '@/types/employee'
+import FormAlert from '@/components/ui/FormAlert'
 
 interface EmployeeFormProps {
   employeeId?: string
@@ -92,11 +93,7 @@ export default function EmployeeForm({ employeeId, initialData }: EmployeeFormPr
   return (
     <div className="mx-auto max-w-2xl">
       <form onSubmit={handleSubmit} className="rounded-xl bg-white p-6 shadow-sm">
-        {error && (
-          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        )}
+        {error && <div className="mb-6"><FormAlert variant="error" message={error} /></div>}
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>

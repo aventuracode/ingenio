@@ -1,22 +1,24 @@
-import { 
-  Plus, 
-  Search, 
-  ClipboardCheck, 
-  Clock, 
-  CheckCircle2, 
+import {
+  Plus,
+  Search,
+  ClipboardCheck,
+  Clock,
+  CheckCircle2,
   TrendingUp,
   Star,
   Calendar,
-  User,
   Users,
   Eye,
-  Pencil
+  Pencil,
 } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { EvaluationsService } from '@/lib/services/evaluations.service'
 import { formatDate } from '@/lib/utils/date'
-import { getEvaluationStatusStyle } from '@/types/evaluation'
+import { StatsGrid, type StatItem } from '@/components/ui/StatsCard'
+import StatusBadge from '@/components/ui/StatusBadge'
+import Avatar from '@/components/ui/Avatar'
+import PageHeader from '@/components/ui/PageHeader'
+import EmptyState from '@/components/ui/EmptyState'
 
 // ============================================
 // PÁGINA DE EVALUACIONES - SERVER COMPONENT
@@ -32,92 +34,52 @@ export default async function EvaluacionesPage() {
   ])
 
   // Configuración de stats cards con datos dinámicos
-  const statsConfig = [
+  const statsConfig: StatItem[] = [
     {
       name: 'Evaluaciones Activas',
       value: stats.activas.toString(),
       icon: ClipboardCheck,
-      color: 'bg-blue-500',
-      bgColor: 'bg-blue-50',
-      textColor: 'text-blue-600',
+      color: 'blue',
     },
     {
       name: 'Pendientes',
       value: stats.pendientes.toString(),
       icon: Clock,
-      color: 'bg-amber-500',
-      bgColor: 'bg-amber-50',
-      textColor: 'text-amber-600',
+      color: 'amber',
     },
     {
       name: 'Finalizadas',
       value: stats.finalizadas.toString(),
       icon: CheckCircle2,
-      color: 'bg-green-500',
-      bgColor: 'bg-green-50',
-      textColor: 'text-green-600',
+      color: 'green',
     },
     {
       name: 'Promedio General',
       value: stats.promedioGeneral.toFixed(1),
       icon: TrendingUp,
-      color: 'bg-purple-500',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600',
+      color: 'purple',
       suffix: '/5',
     },
   ]
   return (
     <div className="space-y-6">
       {/* HEADER */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Evaluaciones 360°</h1>
-          <p className="mt-1 text-sm text-gray-600">
-            Gestiona evaluaciones de desempeño y feedback de empleados.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/evaluaciones/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          <Plus className="h-5 w-5" />
-          Nueva Evaluación
-        </Link>
-      </div>
+      <PageHeader
+        title="Evaluaciones 360°"
+        description="Gestiona evaluaciones de desempeño y feedback de empleados."
+        action={
+          <Link
+            href="/dashboard/evaluaciones/new"
+            className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <Plus className="h-5 w-5" />
+            Nueva Evaluación
+          </Link>
+        }
+      />
 
       {/* STATS CARDS */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {statsConfig.map((stat) => {
-          const Icon = stat.icon
-          return (
-            <div
-              key={stat.name}
-              className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                  <p className="mt-2 flex items-baseline gap-1">
-                    <span className="text-3xl font-bold text-gray-900">
-                      {stat.value}
-                    </span>
-                    {stat.suffix && (
-                      <span className="text-lg font-medium text-gray-500">
-                        {stat.suffix}
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <div className={`rounded-xl ${stat.bgColor} p-3`}>
-                  <Icon className={`h-6 w-6 ${stat.textColor}`} />
-                </div>
-              </div>
-              <div className={`absolute bottom-0 left-0 h-1 w-full ${stat.color} opacity-0 transition-opacity group-hover:opacity-100`} />
-            </div>
-          )
-        })}
-      </div>
+      <StatsGrid stats={statsConfig} />
 
       {/* SEARCH BAR */}
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
@@ -169,20 +131,12 @@ export default async function EvaluacionesPage() {
                   {/* EMPLEADO */}
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center gap-3">
-                      {evaluation.empleado.avatar ? (
-                        <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-gray-100">
-                          <Image
-                            src={evaluation.empleado.avatar}
-                            alt={`${evaluation.empleado.nombre} ${evaluation.empleado.apellido}`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white ring-2 ring-gray-100">
-                          {evaluation.empleado.nombre.charAt(0)}{evaluation.empleado.apellido.charAt(0)}
-                        </div>
-                      )}
+                      <Avatar
+                        nombre={evaluation.empleado.nombre}
+                        apellido={evaluation.empleado.apellido}
+                        src={evaluation.empleado.avatar}
+                        ring
+                      />
                       <div>
                         <div className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                           {evaluation.empleado.nombre} {evaluation.empleado.apellido}
@@ -229,22 +183,10 @@ export default async function EvaluacionesPage() {
 
                   {/* ESTADO */}
                   <td className="whitespace-nowrap px-6 py-4">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${getEvaluationStatusStyle(
-                        evaluation.estadoRaw
-                      )}`}
-                    >
-                      {evaluation.estadoRaw === 'pending' && (
-                        <Clock className="h-3.5 w-3.5" />
-                      )}
-                      {evaluation.estadoRaw === 'in_progress' && (
-                        <User className="h-3.5 w-3.5" />
-                      )}
-                      {evaluation.estadoRaw === 'completed' && (
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      )}
-                      {evaluation.estado}
-                    </span>
+                    <StatusBadge
+                      status={evaluation.estadoRaw}
+                      label={evaluation.estado}
+                    />
                   </td>
 
                   {/* PUNTAJE */}
@@ -303,24 +245,20 @@ export default async function EvaluacionesPage() {
 
       {/* EMPTY STATE (hidden when there's data) */}
       {evaluations.length === 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-12 text-center shadow-sm">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-            <ClipboardCheck className="h-8 w-8 text-gray-400" />
-          </div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">
-            No hay evaluaciones
-          </h3>
-          <p className="mb-6 text-sm text-gray-600">
-            Comienza creando tu primera evaluación de desempeño.
-          </p>
-          <Link
-            href="/dashboard/evaluaciones/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-          >
-            <Plus className="h-4 w-4" />
-            Nueva Evaluación
-          </Link>
-        </div>
+        <EmptyState
+          icon={ClipboardCheck}
+          title="No hay evaluaciones"
+          description="Comienza creando tu primera evaluación de desempeño."
+          action={
+            <Link
+              href="/dashboard/evaluaciones/new"
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+            >
+              <Plus className="h-4 w-4" />
+              Nueva Evaluación
+            </Link>
+          }
+        />
       )}
     </div>
   )
